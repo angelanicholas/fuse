@@ -11,12 +11,12 @@ import { clearCanvas, downloadCanvas } from '../util/canvas';
 import {
   BLURRY_LINE_SHIFT,
   CELL_SIZE,
+  GRID_TYPES,
   NUM_ROWS,
   PEG_SHIFT,
   SIZE,
 } from '../util/constants';
 
-const GRID_TYPES = { pegs: 'Peg', lines: 'Grid', squares: 'Tile' };
 const isGridLines = props => props.gridType === GRID_TYPES.lines;
 const dpi = window.devicePixelRatio;
 const canvasProps = {
@@ -27,8 +27,8 @@ const canvasProps = {
 
 // styled components
 const gridLineStyles = css`
-  border-top: 0.5px solid ${colors.darkGray};
   border-left: 0.5px solid ${colors.darkGray};
+  border-top: 0.5px solid ${colors.darkGray};
 `;
 const Container = styled.div`
   align-items: center;
@@ -54,13 +54,8 @@ const GridCanvas = styled.canvas`
 `;
 
 class PixelArtEditor extends Component {
-  constructor(props) {
-    super(props);
-
-    this.state = {
-      gridType: props.gridType,
-    };
-
+  constructor() {
+    super();
     this.displayCanvas = createRef();
     this.eventCanvas = createRef();
     this.gridCanvas = createRef();
@@ -69,7 +64,6 @@ class PixelArtEditor extends Component {
     this.shouldCanvasUpdate = false;
 
     this.downloadCanvas = this.downloadCanvas.bind(this);
-    this.handleGridTypeToggle = this.handleGridTypeToggle.bind(this);
     this.handleClick = this.handleClick.bind(this);
     this.handleDrag = this.handleDrag.bind(this);
     this.handleMouseDown = this.handleMouseDown.bind(this);
@@ -113,8 +107,8 @@ class PixelArtEditor extends Component {
     this.drawArt();
   }
 
-  shouldComponentUpdate(nextProps, nextState) {
-    const gridTypeChanged = nextState.gridType !== this.state.gridType;
+  shouldComponentUpdate(nextProps) {
+    const gridTypeChanged = nextProps.gridType !== this.props.gridType;
     if (gridTypeChanged || this.shouldCanvasUpdate) {
       return true;
     }
@@ -167,10 +161,6 @@ class PixelArtEditor extends Component {
     eventCanvas.addEventListener('mousemove', this.handleMouseMove);
   }
 
-  handleGridTypeToggle(ev) {
-    this.setState({ gridType: ev.currentTarget.value });
-  }
-
   calcColFromMouseY(y) {
     return Math.floor((y + this.scrollContainer.scrollTop - this.gridCanvas.current.offsetTop)
       / CELL_SIZE);
@@ -194,7 +184,7 @@ class PixelArtEditor extends Component {
   }
 
   drawCell(rowCount, colCount, canvasName, fill) {
-    const { gridType } = this.state;
+    const { gridType } = this.props;
     const canvas = this.ctx[canvasName];
     const rectArgs = [rowCount * CELL_SIZE, colCount * CELL_SIZE, CELL_SIZE, CELL_SIZE];
     const arcArgs = [rowCount * CELL_SIZE + PEG_SHIFT, colCount * CELL_SIZE + PEG_SHIFT,
@@ -250,12 +240,10 @@ class PixelArtEditor extends Component {
   }
 
   render() {
-    const { gridType } = this.state;
-
     return (
       <Container>
         <GridCanvas
-          gridType={gridType}
+          gridType={this.props.gridType}
           ref={this.gridCanvas}
           {...canvasProps}
         />
@@ -273,8 +261,6 @@ class PixelArtEditor extends Component {
           {...canvasProps}
         />
         <ControlPanel
-          gridType={gridType}
-          onGridTypeToggle={this.handleGridTypeToggle}
           onReset={this.resetCanvas}
           onSave={this.downloadCanvas}
         />
@@ -285,16 +271,19 @@ class PixelArtEditor extends Component {
 }
 
 PixelArtEditor.propTypes = {
+  canvas: PropTypes.arrayOf(PropTypes.arrayOf(PropTypes.string)),
+  color: PropTypes.shape({
+    hex: PropTypes.string.isRequired,
+    name: PropTypes.string.isRequired,
+  }),
   gridType: PropTypes.oneOf(Object.values(GRID_TYPES)),
 };
-PixelArtEditor.defaultProps = {
-  gridType: GRID_TYPES.pegs,
-};
 
-const mapStateToProps = ({ canvas, color }) => {
+const mapStateToProps = ({ canvas, color, gridType }) => {
   return {
     canvas,
     color,
+    gridType,
   };
 };
 const mapDispatchToProps = dispatch => {

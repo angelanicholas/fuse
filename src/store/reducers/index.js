@@ -1,7 +1,12 @@
 import { combineReducers } from 'redux';
-import { CLEAR_CANVAS, CHANGE_COLOR, FILL_PIXEL } from '../actions';
-import { NUM_ROWS } from '../../util/constants';
+import { GRID_TYPES, NUM_ROWS } from '../../util/constants';
 import { perlerColors } from '../../util/colors';
+import {
+  CLEAR_CANVAS,
+  CHANGE_COLOR,
+  CHANGE_GRID_TYPE,
+  FILL_PIXEL,
+} from '../actions';
 
 function newCanvas() {
   return new Array(NUM_ROWS).fill(0).map(() => new Array(NUM_ROWS).fill(null));
@@ -32,7 +37,18 @@ function color(state = initialColorState, action) {
   }
 };
 
+const initialGridTypeState = GRID_TYPES.pegs;
+function gridType(state = initialGridTypeState, action) {
+  switch (action.type) {
+    case CHANGE_GRID_TYPE:
+      return action.gridType;
+    default:
+      return state;
+  }
+};
+
 export default combineReducers({
   canvas,
   color,
+  gridType,
 });

@@ -7,7 +7,7 @@ import ButtonComponent from './button';
 import ButtonToggle from './buttonToggle';
 import Icon from './icon';
 import Swatch from './swatch';
-import { changeColor } from '../store/actions';
+import { changeColor, changeGridType } from '../store/actions';
 import { colors, perlerColors } from '../util/colors';
 import { CELL_SIZE } from '../util/constants';
 
@@ -127,19 +127,19 @@ ControlPanel.propTypes = {
     hex: PropTypes.string.isRequired,
     name: PropTypes.string.isRequired,
   }).isRequired,
-  gridType: PropTypes.string.isRequired,
-  onGridTypeToggle: PropTypes.func.isRequired,
   onReset: PropTypes.func.isRequired,
   onSave: PropTypes.func.isRequired,
 };
 
-const mapStateToProps = ({ color }) => {
+const mapStateToProps = ({ color, gridType }) => {
   return {
     color,
+    gridType,
   };
 };
 const mapDispatchToProps = dispatch => {
   return {
+    onGridTypeToggle: (ev, toggleOption) => dispatch(changeGridType(toggleOption.value)),
     onSwatchClick: (color) => dispatch(changeColor(color)),
   };
 };

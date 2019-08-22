@@ -6,6 +6,7 @@ import isEmpty from 'lodash/isEmpty';
 import Bead from './bead';
 import { colors, perlerColors, perlerHexStrings } from '../util/colors';
 import { CELL_SIZE } from '../util/constants';
+import { canvasQuotes } from '../util/canvas';
 
 // styled components
 const BeadSummary = styled.div`
@@ -14,7 +15,7 @@ const BeadSummary = styled.div`
   flex-flow: row nowrap;
   padding: 1em;
 `;
-const ColorInfoText = styled.p`
+const Text = styled.p`
   color: ${colors.darkGray};
   font-size: 1em;
   flex: 0.8;
@@ -31,6 +32,15 @@ const Container = styled.div`
   right: 0;
   top: 0;
   width: ${CELL_SIZE * 12}px;
+`;
+const InfoText = styled.p`
+  color: ${colors.mediumLightGray};
+  font-size: 0.9em;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  line-height: 1.6;
+  margin: 2em 1em 0 1em;
+  text-align: center;
 `;
 
 function getUsedColors(canvas) {
@@ -55,15 +65,22 @@ function getUsedColors(canvas) {
 
 const SummaryPanel = ({ canvas, usedColors }) => {
   const canvasColors = usedColors || getUsedColors(canvas);
+  const quote = canvasQuotes[Math.floor(Math.random() * canvasQuotes.length)];
+
   return (
     <Container>
-      {!isEmpty(canvasColors) && Object.values(canvasColors).map(bead => (
+      {!isEmpty(canvasColors) ? Object.values(canvasColors).map(bead => (
         <BeadSummary key={`beadSummary-${bead.color}`}>
           <Bead color={bead.color} size={2} />
-          <ColorInfoText>{bead.name}</ColorInfoText>
-          <ColorInfoText>{bead.quantity}</ColorInfoText>
+          <Text>{bead.name}</Text>
+          <Text>{bead.quantity}</Text>
         </BeadSummary>
-      ))}
+      )) : (
+        <>
+          <InfoText>{quote.text}</InfoText>
+          <InfoText>— {quote.author}</InfoText>
+        </>
+      )}
     </Container>
   );
 }

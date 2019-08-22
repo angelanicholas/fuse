@@ -52,3 +52,23 @@ export function downloadCanvas(canvas) {
     downloadLink.click();
   }
 }
+
+export const canvasQuotes = [{
+  text: "It's so fine and yet so terrible to stand in front of a blank canvas.",
+  author: 'Paul Cezanne',
+}, {
+  text: 'A canvas is never empty.',
+  author: 'Robert Rauschenberg',
+}, {
+  text: 'The world is but a canvas to our imagination.',
+  author: 'Henry David Thoreau',
+}, {
+  text: "The canvas paints itself. I'm just the middleman.",
+  author: 'Peter Max',
+}, {
+  text: 'The colors live a remarkable life of their own after they have been applied to the canvas.',
+  author: 'Edvard Munch',
+}, {
+  text: 'I put on the canvas whatever comes into my mind.',
+  author: 'Frida Kahlo',
+}];
