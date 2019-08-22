@@ -1,28 +1,22 @@
 import React, { Component, createRef } from 'react';
 import PropTypes from 'prop-types';
 import styled, { css } from 'styled-components';
+import { connect } from 'react-redux';
 import isNull from 'lodash/isNull';
-
-import Bead from './bead';
-import ButtonComponent from './button';
-import ButtonToggle from './buttonToggle';
-import Icon from './icon';
-import Swatch from './swatch';
-import { colors, perlerColors } from '../util/colors';
+import ControlPanel from './controlPanel';
+import SummaryPanel from './summaryPanel';
+import { clearCanvas as clearCanvasData, fillPixel } from '../store/actions';
+import { colors, gridColors } from '../util/colors';
 import { clearCanvas, downloadCanvas } from '../util/canvas';
+import {
+  BLURRY_LINE_SHIFT,
+  CELL_SIZE,
+  NUM_ROWS,
+  PEG_SHIFT,
+  SIZE,
+} from '../util/constants';
 
-let SIZE = 575;
-const NUM_ROWS = 29;
-const CELL_SIZE = Math.floor(SIZE / NUM_ROWS);
-SIZE = CELL_SIZE * NUM_ROWS;
-const GRID_COLORS = [colors.white, colors.lightGray];
 const GRID_TYPES = { pegs: 'Peg', lines: 'Grid', squares: 'Tile' };
-const LINE_SHIFT = -0.5;
-const PEG_SHIFT = 0.5 * CELL_SIZE;
-
-const initDataArray = () => new Array(NUM_ROWS).fill(0).map(() => new Array(NUM_ROWS).fill(null));
-const buttonToggleOptions = Object.values(GRID_TYPES).map(type => ({ value: type }));
-const gridLineStyles = `0.5px solid ${colors.darkGray}`;
 const isGridLines = props => props.gridType === GRID_TYPES.lines;
 const dpi = window.devicePixelRatio;
 const canvasProps = {
@@ -30,57 +24,11 @@ const canvasProps = {
   width: SIZE * dpi,
   style: { height: SIZE, width: SIZE },
 };
-const panelStyles = css`
-  background-color: ${colors.white};
-  bottom: 0;
-  box-shadow: 0 0 0.2em ${colors.transparentBlack};
-  display: flex;
-  flex-flow: column nowrap;
-  padding: 0.5em 1em;
-  position: absolute;
-  top: 0;
-  width: ${CELL_SIZE * 12}px;
-`;
 
 // styled components
-const BeadSummary = styled.div`
-  align-items: center;
-  display: flex;
-  flex-flow: row nowrap;
-  padding: 1em;
-`;
-const ColorInfoText = styled.p`
-  color: ${colors.darkGray};
-  font-size: 1em;
-  flex: 0.8;
-  margin-left: 1em;
-`;
-const Button = styled(ButtonComponent)`
-  margin-bottom: 1em;
-`;
-const ButtonGroup = styled.div`
-  display: flex;
-  flex-flow: row nowrap;
-  justify-content: space-between;
-  button {
-    flex: 1;
-    margin-left: 1em;
-    &:first-child {
-      margin-left: 0;
-    }
-  }
-`;
-const ColorInfo = styled.div`
-  align-items: center;
-  display: flex;
-  margin-bottom: 1em;
-  padding: 1em;
-  width: 100%;
-`;
-const ColorPalette = styled.div`
-  display: flex;
-  flex-flow: row wrap;
-  margin-bottom: 1em;
+const gridLineStyles = css`
+  border-top: 0.5px solid ${colors.darkGray};
+  border-left: 0.5px solid ${colors.darkGray};
 `;
 const Container = styled.div`
   align-items: center;
@@ -89,14 +37,6 @@ const Container = styled.div`
   justify-content: center;
   position: relative;
   width: 100%;
-`;
-const ControlPanel = styled.div`
-  ${panelStyles}
-  left: 0;
-`;
-const SummaryPanel = styled.div`
-  ${panelStyles}
-  right: 0;
 `;
 const DisplayCanvas = styled.canvas`
   pointer-events: none;
@@ -107,8 +47,7 @@ const EventCanvas = styled.canvas`
   z-index: 2;
 `;
 const GridCanvas = styled.canvas`
-  border-left: ${props => (isGridLines(props) ? gridLineStyles : 0)};
-  border-top: ${props => (isGridLines(props) ? gridLineStyles : 0)};
+  ${props => (isGridLines(props) ? gridLineStyles : '')}
   pointer-events: none;
   position: absolute;
   z-index: ${props => (isGridLines(props) ? 1 : 0)};
@@ -119,34 +58,25 @@ class PixelArtEditor extends Component {
     super(props);
 
     this.state = {
-      color: perlerColors[0],
       gridType: props.gridType,
-      usedColors: {},
     };
 
     this.displayCanvas = createRef();
     this.eventCanvas = createRef();
     this.gridCanvas = createRef();
-
-    this.undoHistory = [];
-    this.redoHistory = [];
     this.lastEventRow = null;
     this.lastEventCol = null;
-    this.savedData = initDataArray();
+    this.shouldCanvasUpdate = false;
 
     this.downloadCanvas = this.downloadCanvas.bind(this);
-    this.handleButtonToggle = this.handleButtonToggle.bind(this);
+    this.handleGridTypeToggle = this.handleGridTypeToggle.bind(this);
     this.handleClick = this.handleClick.bind(this);
     this.handleDrag = this.handleDrag.bind(this);
     this.handleMouseDown = this.handleMouseDown.bind(this);
     this.handleMouseMove = this.handleMouseMove.bind(this);
     this.handleMouseOut = this.handleMouseOut.bind(this);
     this.handleMouseUp = this.handleMouseUp.bind(this);
-    this.handleSwatchClick = this.handleSwatchClick.bind(this);
-    this.redoLastAction = this.redoLastAction.bind(this);
     this.resetCanvas = this.resetCanvas.bind(this);
-    this.undoLastAction = this.undoLastAction.bind(this);
-    this.submitAction = this.submitAction.bind(this);
   }
 
   componentDidMount() {
@@ -176,26 +106,29 @@ class PixelArtEditor extends Component {
   }
 
   componentDidUpdate(prevProps, prevState) {
-    if (this.state.gridType !== prevState.gridType) {
-      clearCanvas(this.gridCanvas.current);
-      this.drawGrid();
-      if (this.displayCanvas) {
-        clearCanvas(this.displayCanvas.current);
-        this.drawArt();
-      }
+    this.shouldCanvasUpdate = false;
+    clearCanvas(this.gridCanvas.current);
+    clearCanvas(this.displayCanvas.current);
+    this.drawGrid();
+    this.drawArt();
+  }
+
+  shouldComponentUpdate(nextProps, nextState) {
+    const gridTypeChanged = nextState.gridType !== this.state.gridType;
+    if (gridTypeChanged || this.shouldCanvasUpdate) {
+      return true;
     }
+    return false;
   }
 
   handleClick(ev, isRightClick) {
+    const { canvas, color } = this.props;
     const row = this.calcRowFromMouseX(ev.clientX);
     const col = this.calcColFromMouseY(ev.clientY);
-    const oldFill = this.savedData[row][col];
-    const newFill = isRightClick ? null : this.state.color.hex;
-
-    if ((!isRightClick && !oldFill) || (oldFill !== newFill)) {
-      this.submitAction({
-        row, col, newFill, oldFill,
-      }, this.undoHistory);
+    const fill = isRightClick ? null : color.hex;
+    if (canvas[row][col] !== fill) {
+      this.drawCell(row, col, 'display', fill);
+      this.props.fillPixel(row, col, fill);
     }
   }
 
@@ -234,32 +167,8 @@ class PixelArtEditor extends Component {
     eventCanvas.addEventListener('mousemove', this.handleMouseMove);
   }
 
-  handleButtonToggle(ev) {
+  handleGridTypeToggle(ev) {
     this.setState({ gridType: ev.currentTarget.value });
-  }
-
-  handleSwatchClick(color) {
-    this.setState({ color });
-  }
-
-  calcBeadTotals() {
-    const usedColors = {};
-    this.savedData.forEach((row) => {
-      for (let i = 0; i < row.length; i += 1) {
-        const beadColor = row[i];
-        if (beadColor === null) continue; // eslint-disable-line
-        if (usedColors[beadColor]) {
-          usedColors[beadColor].quantity += 1;
-        } else {
-          usedColors[beadColor] = {
-            color: beadColor,
-            name: perlerColors.find(perlerColor => perlerColor.hex === beadColor).name,
-            quantity: 1,
-          };
-        }
-      }
-    });
-    this.setState({ usedColors });
   }
 
   calcColFromMouseY(y) {
@@ -279,7 +188,7 @@ class PixelArtEditor extends Component {
   drawArt() {
     for (let i = 0; i < NUM_ROWS; i += 1) {
       for (let j = 0; j < NUM_ROWS; j += 1) {
-        this.drawCell(i, j, 'display', this.savedData[i][j]);
+        this.drawCell(i, j, 'display', this.props.canvas[i][j]);
       }
     }
   }
@@ -296,8 +205,8 @@ class PixelArtEditor extends Component {
       switch (gridType) {
         case GRID_TYPES.lines:
           canvas.strokeStyle = colors.darkestGray;
-          rectArgs[0] += LINE_SHIFT;
-          rectArgs[1] += LINE_SHIFT;
+          rectArgs[0] += BLURRY_LINE_SHIFT;
+          rectArgs[1] += BLURRY_LINE_SHIFT;
           canvas.strokeRect(...rectArgs);
           break;
         case GRID_TYPES.pegs:
@@ -330,42 +239,18 @@ class PixelArtEditor extends Component {
   drawGrid() {
     for (let i = 0; i < NUM_ROWS; i += 1) {
       for (let j = 0; j < NUM_ROWS; j += 1) {
-        this.drawCell(i, j, 'grid', GRID_COLORS[(i + j) % 2]);
+        this.drawCell(i, j, 'grid', gridColors[(i + j) % 2]);
       }
     }
   }
 
   resetCanvas() {
-    clearCanvas(this.displayCanvas.current);
-    this.savedData = initDataArray();
-    this.undoHistory = [];
-    this.redoHistory = [];
-  }
-
-  redoLastAction() {
-    if (this.redoHistory.length) {
-      const { oldFill: newFill, newFill: oldFill, ...rest } = this.redoHistory.pop();
-      this.submitAction({ oldFill, newFill, ...rest }, this.undoHistory);
-    }
-  }
-
-  submitAction(action, history) {
-    history.push(action);
-    const { row, col, newFill } = action;
-    this.savedData[row][col] = newFill;
-    this.drawCell(row, col, 'display', newFill);
-    this.calcBeadTotals();
-  }
-
-  undoLastAction() {
-    if (this.undoHistory.length) {
-      const { oldFill: newFill, newFill: oldFill, ...rest } = this.undoHistory.pop();
-      this.submitAction({ oldFill, newFill, ...rest }, this.redoHistory);
-    }
+    this.shouldCanvasUpdate = true;
+    this.props.clearCanvasData();
   }
 
   render() {
-    const { color, gridType, usedColors } = this.state;
+    const { gridType } = this.state;
 
     return (
       <Container>
@@ -387,64 +272,13 @@ class PixelArtEditor extends Component {
           ref={this.eventCanvas}
           {...canvasProps}
         />
-        <ControlPanel>
-          <ButtonGroup>
-            <Button
-              label="Undo Action"
-              onClick={this.undoLastAction}
-            >
-              <Icon name="back" />
-            </Button>
-            <Button
-              label="Redo Action"
-              onClick={this.redoLastAction}
-            >
-              <Icon name="forward" />
-            </Button>
-            <Button
-              label="Download Canvas"
-              onClick={this.downloadCanvas}
-            >
-              <Icon name="save" />
-            </Button>
-            <Button
-              label="Reset Canvas"
-              onClick={this.resetCanvas}
-            >
-              <Icon name="reset" />
-            </Button>
-          </ButtonGroup>
-          <ButtonToggle
-            activeIndex={buttonToggleOptions.findIndex(o => o.value === gridType)}
-            onClick={this.handleButtonToggle}
-            options={buttonToggleOptions}
-          />
-          <ColorInfo>
-            <Bead color={color.hex} />
-            <ColorInfoText>
-              {color.name}
-            </ColorInfoText>
-          </ColorInfo>
-          <ColorPalette>
-            {perlerColors.map(perlerColor => (
-              <Swatch
-                color={perlerColor}
-                isSelected={perlerColor.hex === color.hex}
-                key={`Swatch-${perlerColor.hex}`}
-                onClick={this.handleSwatchClick}
-              />
-            ))}
-          </ColorPalette>
-        </ControlPanel>
-        <SummaryPanel>
-          {Object.values(usedColors).map(bead => (
-            <BeadSummary key={`beadSummary-${bead.color}`}>
-              <Bead color={bead.color} size={2} />
-              <ColorInfoText>{bead.name}</ColorInfoText>
-              <ColorInfoText>{bead.quantity}</ColorInfoText>
-            </BeadSummary>
-          ))}
-        </SummaryPanel>
+        <ControlPanel
+          gridType={gridType}
+          onGridTypeToggle={this.handleGridTypeToggle}
+          onReset={this.resetCanvas}
+          onSave={this.downloadCanvas}
+        />
+        <SummaryPanel />
       </Container>
     );
   }
@@ -457,4 +291,17 @@ PixelArtEditor.defaultProps = {
   gridType: GRID_TYPES.pegs,
 };
 
-export default PixelArtEditor;
+const mapStateToProps = ({ canvas, color }) => {
+  return {
+    canvas,
+    color,
+  };
+};
+const mapDispatchToProps = dispatch => {
+  return {
+    clearCanvasData: () => dispatch(clearCanvasData()),
+    fillPixel: (row, col, fill) => dispatch(fillPixel(row, col, fill)),
+  };
+};
+
+export default connect(mapStateToProps, mapDispatchToProps)(PixelArtEditor);

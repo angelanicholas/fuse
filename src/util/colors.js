@@ -131,3 +131,10 @@ export const perlerColors = [
   // { name: 'Color Change Dark Green', hex: '#384E48' },
   // { name: 'Color Change Black', hex: '#494D4D' },
 ];
+
+export const perlerHexStrings = perlerColors.map(color => color.hex);
+
+export const gridColors = [
+  colors.white,
+  colors.lightGray,
+];
