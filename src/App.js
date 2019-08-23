@@ -1,6 +1,6 @@
 import React from 'react';
 import styled from 'styled-components';
-import PixelArtEditor from './components/pixelArtEditor';
+import Canvas from './components/canvas';
 import { colors } from './util/colors';
 import './App.css';
 
@@ -15,8 +15,8 @@ const Container = styled.div`
 
 function App() {
   return (
-    <Container id="scrollContainer" className="App">
-      <PixelArtEditor />
+    <Container id="scrollContainer">
+      <Canvas />
     </Container>
   );
 }

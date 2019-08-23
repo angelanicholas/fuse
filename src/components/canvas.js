@@ -55,7 +55,7 @@ const GridCanvas = styled.canvas`
   z-index: ${props => (isGridLines(props) ? 1 : 0)};
 `;
 
-class PixelArtEditor extends Component {
+class Canvas extends Component {
   constructor() {
     super();
     this.displayCanvas = createRef();
@@ -148,7 +148,6 @@ class PixelArtEditor extends Component {
   }
 
   handleMouseDown() {
-    this.redoHistory = [];
     const eventCanvas = this.eventCanvas.current;
     this.drawCell(this.lastEventRow, this.lastEventCol, 'event', null);
     eventCanvas.removeEventListener('mousemove', this.handleMouseMove);
@@ -274,7 +273,7 @@ class PixelArtEditor extends Component {
   }
 }
 
-PixelArtEditor.propTypes = {
+Canvas.propTypes = {
   canvas: PropTypes.arrayOf(PropTypes.arrayOf(PropTypes.string)),
   color: PropTypes.shape({
     hex: PropTypes.string.isRequired,
@@ -309,4 +308,4 @@ const mapDispatchToProps = dispatch => {
   };
 };
 
-export default connect(mapStateToProps, mapDispatchToProps)(PixelArtEditor);
+export default connect(mapStateToProps, mapDispatchToProps)(Canvas);
