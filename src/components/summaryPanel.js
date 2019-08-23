@@ -65,22 +65,23 @@ function getUsedColors(canvas) {
 
 const SummaryPanel = ({ canvas, usedColors }) => {
   const canvasColors = usedColors || getUsedColors(canvas);
-  const quote = canvasQuotes[Math.floor(Math.random() * canvasQuotes.length)];
+  const isCanvasEmpty = isEmpty(canvasColors);
+  const quote = isCanvasEmpty ? canvasQuotes[Math.floor(Math.random() * canvasQuotes.length)] : {};
 
   return (
     <Container>
-      {!isEmpty(canvasColors) ? Object.values(canvasColors).map(bead => (
+      {isCanvasEmpty ? (
+        <>
+          <InfoText>{quote.text}</InfoText>
+          <InfoText>— {quote.author}</InfoText>
+        </>
+      ) : Object.values(canvasColors).map(bead => (
         <BeadSummary key={`beadSummary-${bead.color}`}>
           <Bead color={bead.color} size={2} />
           <Text>{bead.name}</Text>
           <Text>{bead.quantity}</Text>
         </BeadSummary>
-      )) : (
-        <>
-          <InfoText>{quote.text}</InfoText>
-          <InfoText>— {quote.author}</InfoText>
-        </>
-      )}
+      ))}
     </Container>
   );
 }
@@ -96,7 +97,7 @@ SummaryPanel.propTypes = {
 
 const mapStateToProps = ({ canvas }) => {
   return {
-    canvas,
+    canvas: canvas.present,
   };
 };
 

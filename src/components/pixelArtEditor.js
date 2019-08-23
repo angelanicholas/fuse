@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import styled, { css } from 'styled-components';
 import { connect } from 'react-redux';
 import isNull from 'lodash/isNull';
+
 import ControlPanel from './controlPanel';
 import SummaryPanel from './summaryPanel';
 import { clearCanvas as clearCanvasData, fillPixel } from '../store/actions';
@@ -108,8 +109,11 @@ class PixelArtEditor extends Component {
   }
 
   shouldComponentUpdate(nextProps) {
-    const gridTypeChanged = nextProps.gridType !== this.props.gridType;
-    if (gridTypeChanged || this.shouldCanvasUpdate) {
+    const { canvas, gridType } = this.props;
+    const undoClicked = nextProps.canvas.past.length < canvas.past.length;
+    const redoClicked = nextProps.canvas.future.length < canvas.future.length;
+    const gridTypeChanged = nextProps.gridType !== gridType;
+    if (gridTypeChanged || undoClicked || redoClicked || this.shouldCanvasUpdate) {
       return true;
     }
     return false;
@@ -120,7 +124,7 @@ class PixelArtEditor extends Component {
     const row = this.calcRowFromMouseX(ev.clientX);
     const col = this.calcColFromMouseY(ev.clientY);
     const fill = isRightClick ? null : color.hex;
-    if (canvas[row][col] !== fill) {
+    if (canvas.present[row][col] !== fill) {
       this.drawCell(row, col, 'display', fill);
       this.props.fillPixel(row, col, fill);
     }
@@ -178,7 +182,7 @@ class PixelArtEditor extends Component {
   drawArt() {
     for (let i = 0; i < NUM_ROWS; i += 1) {
       for (let j = 0; j < NUM_ROWS; j += 1) {
-        this.drawCell(i, j, 'display', this.props.canvas[i][j]);
+        this.drawCell(i, j, 'display', this.props.canvas.present[i][j]);
       }
     }
   }
@@ -271,7 +275,11 @@ class PixelArtEditor extends Component {
 }
 
 PixelArtEditor.propTypes = {
-  canvas: PropTypes.arrayOf(PropTypes.arrayOf(PropTypes.string)),
+  canvas: PropTypes.shape({
+    past: PropTypes.arrayOf(PropTypes.arrayOf(PropTypes.arrayOf(PropTypes.string))),
+    present: PropTypes.arrayOf(PropTypes.arrayOf(PropTypes.string)),
+    future: PropTypes.arrayOf(PropTypes.arrayOf(PropTypes.arrayOf(PropTypes.string))),
+  }),
   color: PropTypes.shape({
     hex: PropTypes.string.isRequired,
     name: PropTypes.string.isRequired,

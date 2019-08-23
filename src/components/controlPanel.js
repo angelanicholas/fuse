@@ -2,6 +2,8 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import styled from 'styled-components';
 import { connect } from 'react-redux';
+import { ActionCreators as UndoActionCreators } from 'redux-undo';
+
 import Bead from './bead';
 import ButtonComponent from './button';
 import ButtonToggle from './buttonToggle';
@@ -62,25 +64,31 @@ const Container = styled.div`
 `;
 
 const ControlPanel = ({
+  canRedo,
+  canUndo,
   color,
   gridType,
   onGridTypeToggle,
   onReset,
   onSave,
   onSwatchClick,
+  redo,
+  undo,
 }) => {
   return (
     <Container>
       <ButtonGroup>
         <Button
+          disabled={!canUndo}
           label="Undo Action"
-          onClick={() => null}
+          onClick={undo}
         >
           <Icon name="back" />
         </Button>
         <Button
+          disabled={!canRedo}
           label="Redo Action"
-          onClick={() => null}
+          onClick={redo}
         >
           <Icon name="forward" />
         </Button>
@@ -131,16 +139,22 @@ ControlPanel.propTypes = {
   onSave: PropTypes.func.isRequired,
 };
 
-const mapStateToProps = ({ color, gridType }) => {
+const mapStateToProps = ({ canvas, color, gridType }) => {
   return {
+    canRedo: canvas.future.length > 0,
+    canUndo: canvas.past.length > 0,
     color,
     gridType,
   };
 };
+
 const mapDispatchToProps = dispatch => {
   return {
     onGridTypeToggle: (ev, toggleOption) => dispatch(changeGridType(toggleOption.value)),
     onSwatchClick: (color) => dispatch(changeColor(color)),
+    redo: () => dispatch(UndoActionCreators.redo()),
+    undo: () => dispatch(UndoActionCreators.undo()),
   };
 };
+
 export default connect(mapStateToProps, mapDispatchToProps)(ControlPanel);

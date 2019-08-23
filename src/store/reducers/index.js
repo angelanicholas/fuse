@@ -1,6 +1,8 @@
 import { combineReducers } from 'redux';
+import undoable from 'redux-undo';
 import { GRID_TYPES, NUM_ROWS } from '../../util/constants';
 import { perlerColors } from '../../util/colors';
+import cloneDeep from 'lodash/cloneDeep';
 import {
   CLEAR_CANVAS,
   CHANGE_COLOR,
@@ -19,7 +21,7 @@ function canvas(state = initialCanvasState, action) {
       return newCanvas();
     case FILL_PIXEL:
       const { row, col, fill } = action;
-      const nextState = [...state];
+      const nextState = cloneDeep(state);
       nextState[row][col] = fill;
       return nextState;
     default:
@@ -48,7 +50,7 @@ function gridType(state = initialGridTypeState, action) {
 };
 
 export default combineReducers({
-  canvas,
+  canvas: undoable(canvas),
   color,
   gridType,
 });

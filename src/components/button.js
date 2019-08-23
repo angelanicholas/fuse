@@ -24,8 +24,13 @@ const Container = styled.button`
   padding: 1em;
   text-transform: uppercase;
   transition: color 0.5s ease;
-  &:focus, &:hover {
+  &:focus,
+  &:hover {
     color: ${colors.darkestGray};
+  }
+  &:disabled {
+    color: ${colors.lightGray};
+    pointer-events: none;
   }
 `;
 
