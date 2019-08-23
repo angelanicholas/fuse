@@ -24,6 +24,7 @@ const Container = styled.button`
   padding: 1em;
   text-transform: uppercase;
   transition: color 0.5s ease;
+  user-select: none;
   &:focus,
   &:hover {
     color: ${colors.darkestGray};

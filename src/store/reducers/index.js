@@ -1,8 +1,9 @@
 import { combineReducers } from 'redux';
-import undoable, { excludeAction } from 'redux-undo';
+import undoable, { excludeAction, groupByActionTypes } from 'redux-undo';
 import { GRID_TYPES, NUM_ROWS } from '../../util/constants';
 import { perlerColors } from '../../util/colors';
 import cloneDeep from 'lodash/cloneDeep';
+import cuid from 'cuid';
 import {
   CLEAR_CANVAS,
   CHANGE_COLOR,
@@ -49,12 +50,27 @@ function gridType(state = initialGridTypeState, action) {
   }
 };
 
+export const batchGroupBy = {
+  _group: null,
+  start(group = cuid()) {
+    this._group = group
+  },
+  end() {
+    this._group = null
+  },
+  init(rawActions) {
+    const defaultGroupBy = groupByActionTypes(rawActions)
+    return (action) => this._group || defaultGroupBy(action)
+  }
+};
+
 export default combineReducers({
   canvas: undoable(canvas, {
     filter: excludeAction([
       CHANGE_COLOR,
       CHANGE_GRID_TYPE,
     ]),
+    groupBy: batchGroupBy.init([FILL_PIXEL])
   }),
   color,
   gridType,

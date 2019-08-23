@@ -4,12 +4,14 @@ import styled, { css } from 'styled-components';
 import { connect } from 'react-redux';
 import isNull from 'lodash/isNull';
 import throttle from 'lodash/throttle';
+import { ActionCreators as UndoActionCreators } from 'redux-undo';
 
 import ControlPanel from './controlPanel';
 import SummaryPanel from './summaryPanel';
-import { clearCanvas as clearCanvasData, fillPixel } from '../store/actions';
 import { colors, gridColors } from '../util/colors';
 import { clearCanvas, downloadCanvas } from '../util/canvas';
+import { clearCanvas as clearCanvasData, fillPixel } from '../store/actions';
+import { batchGroupBy } from '../store/reducers';
 import {
   BLURRY_LINE_SHIFT,
   CELL_SIZE,
@@ -63,7 +65,7 @@ class Canvas extends Component {
     this.gridCanvas = createRef();
     this.lastEventRow = null;
     this.lastEventCol = null;
-    this.shouldCanvasUpdate = false;
+    this.shouldCanvasReset = false;
 
     this.downloadCanvas = this.downloadCanvas.bind(this);
     this.handleClick = this.handleClick.bind(this);
@@ -102,7 +104,10 @@ class Canvas extends Component {
   }
 
   componentDidUpdate(prevProps, prevState) {
-    this.shouldCanvasUpdate = false;
+    if (this.shouldCanvasReset) {
+      this.props.clearHistory();
+      this.shouldCanvasReset = false;
+    }
     clearCanvas(this.gridCanvas.current);
     clearCanvas(this.displayCanvas.current);
     this.drawGrid();
@@ -110,10 +115,11 @@ class Canvas extends Component {
   }
 
   shouldComponentUpdate(nextProps) {
-    const { redoClicked, undoClicked } = nextProps;
-    const { gridType } = this.props;
+    const { gridType, historyIndex } = this.props;
+    const redoClicked = nextProps.historyIndex < historyIndex;
+    const undoClicked = nextProps.historyIndex > historyIndex;
     const gridTypeChanged = nextProps.gridType !== gridType;
-    if (gridTypeChanged || undoClicked || redoClicked || this.shouldCanvasUpdate) {
+    if (gridTypeChanged || undoClicked || redoClicked || this.shouldCanvasReset) {
       return true;
     }
     return false;
@@ -148,6 +154,7 @@ class Canvas extends Component {
   }
 
   handleMouseDown() {
+    batchGroupBy.start();
     const eventCanvas = this.eventCanvas.current;
     this.drawCell(this.lastEventRow, this.lastEventCol, 'event', null);
     eventCanvas.removeEventListener('mousemove', this.handleMouseMove);
@@ -159,6 +166,7 @@ class Canvas extends Component {
   }
 
   handleMouseUp() {
+    batchGroupBy.end();
     const eventCanvas = this.eventCanvas.current;
     eventCanvas.removeEventListener('mousemove', this.handleDrag);
     eventCanvas.addEventListener('mousemove', this.handleMouseMove);
@@ -238,7 +246,7 @@ class Canvas extends Component {
   }
 
   resetCanvas() {
-    this.shouldCanvasUpdate = true;
+    this.shouldCanvasReset = true;
     this.props.clearCanvasData();
   }
 
@@ -283,26 +291,16 @@ Canvas.propTypes = {
 };
 
 const mapStateToProps = ({ canvas, color, gridType }) => {
-  const canvasState = canvas.history;
-  let redoClicked = false;
-  let undoClicked = false;
-
-  if (canvasState && canvasState.history) {
-    const lastCanvasState = canvasState.history;
-    redoClicked = canvasState.future.length < lastCanvasState.future.length;
-    undoClicked = canvasState.past.length < lastCanvasState.past.length;
-  }
-
   return {
     canvas: canvas.present,
     color,
     gridType,
-    redoClicked,
-    undoClicked,
+    historyIndex: canvas.limit - canvas.index,
   };
 };
 const mapDispatchToProps = dispatch => {
   return {
+    clearHistory: () => dispatch(UndoActionCreators.clearHistory()),
     clearCanvasData: () => dispatch(clearCanvasData()),
     fillPixel: (row, col, fill) => dispatch(fillPixel(row, col, fill)),
   };
