@@ -1,5 +1,5 @@
 import { combineReducers } from 'redux';
-import undoable from 'redux-undo';
+import undoable, { excludeAction } from 'redux-undo';
 import { GRID_TYPES, NUM_ROWS } from '../../util/constants';
 import { perlerColors } from '../../util/colors';
 import cloneDeep from 'lodash/cloneDeep';
@@ -50,7 +50,12 @@ function gridType(state = initialGridTypeState, action) {
 };
 
 export default combineReducers({
-  canvas: undoable(canvas),
+  canvas: undoable(canvas, {
+    filter: excludeAction([
+      CHANGE_COLOR,
+      CHANGE_GRID_TYPE,
+    ]),
+  }),
   color,
   gridType,
 });

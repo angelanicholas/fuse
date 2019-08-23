@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import styled, { css } from 'styled-components';
 import { connect } from 'react-redux';
 import isNull from 'lodash/isNull';
+import throttle from 'lodash/throttle';
 
 import ControlPanel from './controlPanel';
 import SummaryPanel from './summaryPanel';
@@ -66,7 +67,7 @@ class PixelArtEditor extends Component {
 
     this.downloadCanvas = this.downloadCanvas.bind(this);
     this.handleClick = this.handleClick.bind(this);
-    this.handleDrag = this.handleDrag.bind(this);
+    this.handleDrag = throttle(this.handleDrag.bind(this), 5);
     this.handleMouseDown = this.handleMouseDown.bind(this);
     this.handleMouseMove = this.handleMouseMove.bind(this);
     this.handleMouseOut = this.handleMouseOut.bind(this);
@@ -109,9 +110,8 @@ class PixelArtEditor extends Component {
   }
 
   shouldComponentUpdate(nextProps) {
-    const { canvas, gridType } = this.props;
-    const undoClicked = nextProps.canvas.past.length < canvas.past.length;
-    const redoClicked = nextProps.canvas.future.length < canvas.future.length;
+    const { redoClicked, undoClicked } = nextProps;
+    const { gridType } = this.props;
     const gridTypeChanged = nextProps.gridType !== gridType;
     if (gridTypeChanged || undoClicked || redoClicked || this.shouldCanvasUpdate) {
       return true;
@@ -124,7 +124,7 @@ class PixelArtEditor extends Component {
     const row = this.calcRowFromMouseX(ev.clientX);
     const col = this.calcColFromMouseY(ev.clientY);
     const fill = isRightClick ? null : color.hex;
-    if (canvas.present[row][col] !== fill) {
+    if (canvas[row][col] !== fill) {
       this.drawCell(row, col, 'display', fill);
       this.props.fillPixel(row, col, fill);
     }
@@ -182,7 +182,7 @@ class PixelArtEditor extends Component {
   drawArt() {
     for (let i = 0; i < NUM_ROWS; i += 1) {
       for (let j = 0; j < NUM_ROWS; j += 1) {
-        this.drawCell(i, j, 'display', this.props.canvas.present[i][j]);
+        this.drawCell(i, j, 'display', this.props.canvas[i][j]);
       }
     }
   }
@@ -275,11 +275,7 @@ class PixelArtEditor extends Component {
 }
 
 PixelArtEditor.propTypes = {
-  canvas: PropTypes.shape({
-    past: PropTypes.arrayOf(PropTypes.arrayOf(PropTypes.arrayOf(PropTypes.string))),
-    present: PropTypes.arrayOf(PropTypes.arrayOf(PropTypes.string)),
-    future: PropTypes.arrayOf(PropTypes.arrayOf(PropTypes.arrayOf(PropTypes.string))),
-  }),
+  canvas: PropTypes.arrayOf(PropTypes.arrayOf(PropTypes.string)),
   color: PropTypes.shape({
     hex: PropTypes.string.isRequired,
     name: PropTypes.string.isRequired,
@@ -288,10 +284,22 @@ PixelArtEditor.propTypes = {
 };
 
 const mapStateToProps = ({ canvas, color, gridType }) => {
+  const canvasState = canvas.history;
+  let redoClicked = false;
+  let undoClicked = false;
+
+  if (canvasState && canvasState.history) {
+    const lastCanvasState = canvasState.history;
+    redoClicked = canvasState.future.length < lastCanvasState.future.length;
+    undoClicked = canvasState.past.length < lastCanvasState.past.length;
+  }
+
   return {
-    canvas,
+    canvas: canvas.present,
     color,
     gridType,
+    redoClicked,
+    undoClicked,
   };
 };
 const mapDispatchToProps = dispatch => {
