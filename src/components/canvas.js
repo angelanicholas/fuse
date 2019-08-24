@@ -67,9 +67,11 @@ class Canvas extends Component {
     this.lastEventCol = null;
     this.shouldCanvasReset = false;
 
+    this.cancelDrag = this.cancelDrag.bind(this);
     this.downloadCanvas = this.downloadCanvas.bind(this);
     this.handleClick = this.handleClick.bind(this);
     this.handleDrag = throttle(this.handleDrag.bind(this), 5);
+    this.handleKeyDown = this.handleKeyDown.bind(this);
     this.handleMouseDown = this.handleMouseDown.bind(this);
     this.handleMouseMove = this.handleMouseMove.bind(this);
     this.handleMouseOut = this.handleMouseOut.bind(this);
@@ -93,14 +95,18 @@ class Canvas extends Component {
 
     this.drawGrid();
 
+    document.addEventListener('keydown', this.handleKeyDown);
     eventCanvas.addEventListener('mousemove', this.handleMouseMove);
-    document.body.addEventListener('mouseup', () => {
-      eventCanvas.removeEventListener('mousemove', this.handleDrag);
-    });
+    document.addEventListener('mouseup', this.cancelDrag);
     eventCanvas.oncontextmenu = (ev) => {
       this.handleClick(ev, true);
       return false;
     };
+  }
+
+  componentWillUnmount() {
+    document.removeEventListener('keydown', this.handleKeyDown);
+    document.removeEventListener('mouseup', this.cancelDrag);
   }
 
   componentDidUpdate(prevProps, prevState) {
@@ -140,6 +146,17 @@ class Canvas extends Component {
     this.handleClick(ev, ev.buttons === 2);
   }
 
+  handleKeyDown(ev) {
+    if (ev.ctrlKey|| ev.metaKey) {
+      if (ev.key === 'z') {
+        this.props.undo();
+      }
+      if (ev.key === 'y') {
+        this.props.redo();
+      }
+    }
+  }
+
   handleMouseMove(ev) {
     const row = this.calcRowFromMouseX(ev.clientX);
     const col = this.calcColFromMouseY(ev.clientY);
@@ -166,10 +183,10 @@ class Canvas extends Component {
   }
 
   handleMouseUp() {
-    batchGroupBy.end();
     const eventCanvas = this.eventCanvas.current;
     eventCanvas.removeEventListener('mousemove', this.handleDrag);
     eventCanvas.addEventListener('mousemove', this.handleMouseMove);
+    batchGroupBy.end();
   }
 
   calcColFromMouseY(y) {
@@ -180,6 +197,10 @@ class Canvas extends Component {
   calcRowFromMouseX(x) {
     return Math.floor((x + this.scrollContainer.scrollLeft - this.gridCanvas.current.offsetLeft)
       / CELL_SIZE);
+  }
+
+  cancelDrag() {
+    this.eventCanvas.current.removeEventListener('mousemove', this.handleDrag);
   }
 
   downloadCanvas() {
@@ -303,6 +324,8 @@ const mapDispatchToProps = dispatch => {
     clearHistory: () => dispatch(UndoActionCreators.clearHistory()),
     clearCanvasData: () => dispatch(clearCanvasData()),
     fillPixel: (row, col, fill) => dispatch(fillPixel(row, col, fill)),
+    redo: () => dispatch(UndoActionCreators.redo()),
+    undo: () => dispatch(UndoActionCreators.undo()),
   };
 };
 
