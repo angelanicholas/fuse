@@ -5,3 +5,4 @@ SIZE = CELL_SIZE * NUM_ROWS;
 export const PEG_SHIFT = 0.5 * CELL_SIZE;
 export const BLURRY_LINE_SHIFT = -0.5;
 export const GRID_TYPES = { pegs: 'Peg', lines: 'Grid', squares: 'Tile' };
+export const TOOL_TYPES = { pixel: 'Dot', rectangle: 'Rect', eyedropper: 'Eye' };

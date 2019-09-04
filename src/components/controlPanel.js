@@ -9,12 +9,12 @@ import ButtonComponent from './button';
 import ButtonToggle from './buttonToggle';
 import Icon from './icon';
 import Swatch from './swatch';
-import { changeColor, changeGridType } from '../store/actions';
+import { changeColor, changeGridType, changeToolType } from '../store/actions';
 import { colors, perlerColors } from '../util/colors';
-import { CELL_SIZE } from '../util/constants';
+import { CELL_SIZE, GRID_TYPES, TOOL_TYPES } from '../util/constants';
 
-const GRID_TYPES = { pegs: 'Peg', lines: 'Grid', squares: 'Tile' };
-const buttonToggleOptions = Object.values(GRID_TYPES).map(type => ({ value: type }));
+const gridTypeOptions = Object.values(GRID_TYPES).map(type => ({ value: type }));
+const toolTypeOptions = Object.values(TOOL_TYPES).map(type => ({ value: type }));
 
 // styled components
 const Button = styled(ButtonComponent)`
@@ -72,7 +72,9 @@ const ControlPanel = ({
   onReset,
   onSave,
   onSwatchClick,
+  onToolTypeToggle,
   redo,
+  toolType,
   undo,
 }) => {
   return (
@@ -106,9 +108,14 @@ const ControlPanel = ({
         </Button>
       </ButtonGroup>
       <ButtonToggle
-        activeIndex={buttonToggleOptions.findIndex(o => o.value === gridType)}
+        activeIndex={gridTypeOptions.findIndex(o => o.value === gridType)}
         onClick={onGridTypeToggle}
-        options={buttonToggleOptions}
+        options={gridTypeOptions}
+      />
+      <ButtonToggle
+        activeIndex={toolTypeOptions.findIndex(o => o.value === toolType)}
+        onClick={onToolTypeToggle}
+        options={toolTypeOptions}
       />
       <ColorInfo>
         <Bead color={color.hex} />
@@ -139,18 +146,25 @@ ControlPanel.propTypes = {
   onSave: PropTypes.func.isRequired,
 };
 
-const mapStateToProps = ({ canvas, color, gridType }) => {
+const mapStateToProps = ({
+  canvas,
+  color,
+  gridType,
+  toolType,
+}) => {
   return {
     canRedo: canvas.future.length > 0,
     canUndo: canvas.past.length > 0,
     color,
     gridType,
+    toolType,
   };
 };
 
 const mapDispatchToProps = dispatch => {
   return {
     onGridTypeToggle: (ev, toggleOption) => dispatch(changeGridType(toggleOption.value)),
+    onToolTypeToggle: (ev, toggleOption) => dispatch(changeToolType(toggleOption.value)),
     onSwatchClick: (color) => dispatch(changeColor(color)),
     redo: () => dispatch(UndoActionCreators.redo()),
     undo: () => dispatch(UndoActionCreators.undo()),

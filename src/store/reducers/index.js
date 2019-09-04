@@ -1,6 +1,6 @@
 import { combineReducers } from 'redux';
 import undoable, { excludeAction, groupByActionTypes } from 'redux-undo';
-import { GRID_TYPES, NUM_ROWS } from '../../util/constants';
+import { GRID_TYPES, NUM_ROWS, TOOL_TYPES } from '../../util/constants';
 import { perlerColors } from '../../util/colors';
 import cloneDeep from 'lodash/cloneDeep';
 import cuid from 'cuid';
@@ -8,7 +8,9 @@ import {
   CLEAR_CANVAS,
   CHANGE_COLOR,
   CHANGE_GRID_TYPE,
+  CHANGE_TOOL_TYPE,
   FILL_PIXEL,
+  FILL_RECTANGLE,
 } from '../actions';
 
 function newCanvas() {
@@ -20,13 +22,25 @@ function canvas(state = initialCanvasState, action) {
   switch (action.type) {
     case CLEAR_CANVAS:
       return newCanvas();
-    case FILL_PIXEL:
+    case FILL_PIXEL: {
       const { row, col, fill } = action;
       const nextState = cloneDeep(state);
       nextState[row][col] = fill;
       return nextState;
-    default:
+    }
+    case FILL_RECTANGLE: {
+      const { colEnd, colStart, fill, rowEnd, rowStart } = action;
+      const nextState = cloneDeep(state);
+      for (let row = rowStart; row <= rowEnd; row += 1) {
+        for (let col = colStart; col <= colEnd; col += 1) {
+          nextState[row][col] = fill;
+        }
+      }
+      return nextState;
+    }
+    default: {
       return state;
+    }
   }
 };
 
@@ -40,11 +54,21 @@ function color(state = initialColorState, action) {
   }
 };
 
-const initialGridTypeState = GRID_TYPES.pegs;
+const initialGridTypeState = GRID_TYPES.lines;
 function gridType(state = initialGridTypeState, action) {
   switch (action.type) {
     case CHANGE_GRID_TYPE:
       return action.gridType;
+    default:
+      return state;
+  }
+};
+
+const initialToolTypeState = TOOL_TYPES.rectangle;
+function toolType(state = initialToolTypeState, action) {
+  switch (action.type) {
+    case CHANGE_TOOL_TYPE:
+      return action.toolType;
     default:
       return state;
   }
@@ -74,9 +98,11 @@ export default combineReducers({
     filter: excludeAction([
       CHANGE_COLOR,
       CHANGE_GRID_TYPE,
+      CHANGE_TOOL_TYPE,
     ]),
-    groupBy: batchGroupBy.init([FILL_PIXEL])
+    groupBy: batchGroupBy.init([FILL_PIXEL, FILL_RECTANGLE])
   }),
   color,
   gridType,
+  toolType,
 });
