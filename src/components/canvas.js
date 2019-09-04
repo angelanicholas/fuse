@@ -26,8 +26,8 @@ const isGridLines = props => props.gridType === GRID_TYPES.lines;
 const dpi = window.devicePixelRatio;
 const canvasProps = {
   height: SIZE * dpi,
-  width: SIZE * dpi,
   style: { height: SIZE, width: SIZE },
+  width: SIZE * dpi,
 };
 
 // styled components
@@ -71,7 +71,6 @@ class Canvas extends Component {
     this.shouldCanvasReset = false;
     this.isRightClick = false;
 
-    this.cancelDrag = this.cancelDrag.bind(this);
     this.downloadCanvas = this.downloadCanvas.bind(this);
     this.handleDrag = throttle(this.handleDrag.bind(this), 5);
     this.handleKeyDown = this.handleKeyDown.bind(this);
@@ -99,14 +98,14 @@ class Canvas extends Component {
     this.drawGrid();
 
     document.addEventListener('keydown', this.handleKeyDown);
+    document.addEventListener('mouseup', this.handleMouseUp);
     eventCanvas.addEventListener('mousemove', this.handleMouseMove);
-    document.addEventListener('mouseup', this.cancelDrag);
     eventCanvas.oncontextmenu = ev => false;
   }
 
   componentWillUnmount() {
     document.removeEventListener('keydown', this.handleKeyDown);
-    document.removeEventListener('mouseup', this.cancelDrag);
+    document.removeEventListener('mouseup', this.handleMouseUp);
   }
 
   componentDidUpdate(prevProps, prevState) {
@@ -183,25 +182,28 @@ class Canvas extends Component {
     }
 
     eventCanvas.removeEventListener('mousemove', this.handleMouseMove);
-    eventCanvas.addEventListener('mousemove', this.handleDrag);
+    document.addEventListener('mousemove', this.handleDrag);
   }
 
-  handleMouseOut() {
-    this.drawCell(this.lastEventRow, this.lastEventCol, 'event', null);
+  handleMouseOut(ev) {
+    if (ev.buttons !== 1 && ev.buttons !== 2) {
+      this.drawCell(this.lastEventRow, this.lastEventCol, 'event', null);
+    }
   }
 
   handleMouseUp(ev) {
     const eventCanvas = this.eventCanvas.current;
-    eventCanvas.removeEventListener('mousemove', this.handleDrag);
+    document.removeEventListener('mousemove', this.handleDrag);
     eventCanvas.addEventListener('mousemove', this.handleMouseMove);
     batchGroupBy.end();
 
-    if (this.props.toolType === TOOL_TYPES.rectangle) {
-      this.drawRectangle(ev);
-      this.startRectangleRow = null;
-      this.startRectangleCol = null;
+    if (this.props.toolType === TOOL_TYPES.rectangle
+      && !isNull(this.startRectangleRow)
+      && !isNull(this.startRectangleCol)) {
+        this.drawRectangle(ev);
+        this.startRectangleRow = null;
+        this.startRectangleCol = null;
     }
-
     this.isRightClick = false;
   }
 
@@ -213,10 +215,6 @@ class Canvas extends Component {
   calcColFromMouseX(x) {
     const colIndex = Math.floor((x + this.scrollContainer.scrollLeft - this.gridCanvas.current.offsetLeft) / CELL_SIZE);
     return Math.min(Math.max(colIndex, 0), NUM_ROWS - 1);
-  }
-
-  cancelDrag() {
-    this.eventCanvas.current.removeEventListener('mousemove', this.handleDrag);
   }
 
   downloadCanvas() {
@@ -236,13 +234,13 @@ class Canvas extends Component {
     const canvasName = isDragging ? 'event' : 'display';
     const canvas = this.ctx[canvasName];
     const isPegs = this.props.gridType === GRID_TYPES.pegs;
-    let col = this.calcColFromMouseX(ev.clientX);
-    let row = this.calcRowFromMouseY(ev.clientY);
+    let col = Math.min(Math.max(0, this.calcColFromMouseX(ev.clientX)), NUM_ROWS - 1);
+    let row = Math.min(Math.max(0, this.calcRowFromMouseY(ev.clientY)), NUM_ROWS - 1);
     let { startRectangleCol, startRectangleRow } = this;
     let height = col - startRectangleCol;
     let width = row - startRectangleRow;
 
-    // if dragging above startRectangleCol, draw in reverse
+    // if dragging above initial onClick, draw in reverse
     if (height < 0) {
       if (isPegs) {
         startRectangleCol = col;
@@ -255,7 +253,7 @@ class Canvas extends Component {
     } else {
       height += 1;
     }
-    // if dragging left of startRectangleRow, draw in reverse
+    // if dragging left of initial click, draw in reverse
     if (width < 0) {
       if (isPegs) {
         startRectangleRow = row;
@@ -364,7 +362,7 @@ class Canvas extends Component {
     const row = this.calcColFromMouseX(ev.clientX);
     const col = this.calcRowFromMouseY(ev.clientY);
     const fill = ev.buttons === 2 ? null : color.hex;
-    if (canvas[row][col] !== fill) {
+    if (canvas[col][row] !== fill) {
       this.drawCell(row, col, 'display', fill);
       this.props.fillPixel(col, row, fill);
     }
@@ -391,7 +389,6 @@ class Canvas extends Component {
           onBlur={this.handleMouseOut}
           onMouseDown={this.handleMouseDown}
           onMouseOut={this.handleMouseOut}
-          onMouseUp={this.handleMouseUp}
           ref={this.eventCanvas}
           {...canvasProps}
         />
