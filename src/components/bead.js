@@ -11,7 +11,7 @@ const borderRadiusStyles = css`
 const Container = styled.div`
   ${borderRadiusStyles}
   background-image: linear-gradient(to right, ${p => p.dark8}, ${p => p.light4}, ${p => p.dark8});
-  box-shadow: 0 0 2em rgba(0, 0, 0, 0.1);
+  box-shadow: 0 0 2em rgba(0, 0, 0, 0.02);
   display: inline-block;
   flex: none;
   height: ${p => p.size * 1.3}em;

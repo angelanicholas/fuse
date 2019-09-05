@@ -147,6 +147,7 @@ class Canvas extends Component {
   }
 
   handleKeyDown(ev) {
+    ev.preventDefault();
     if (ev.ctrlKey|| ev.metaKey) {
       if (ev.key === 'z') {
         this.props.undo();

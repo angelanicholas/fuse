@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import styled from 'styled-components';
 import ButtonComponent from './button';
+import Icon from './icon';
 import { colors } from '../util/colors';
 
 // styled components
@@ -67,7 +68,7 @@ class ButtonToggle extends Component {
             textColor={textColor}
             value={option.value}
           >
-            {option.label || option.value}
+            {option.iconName ? <Icon name={option.iconName} /> : option.label || option.value}
           </Button>
         ))}
       </Container>
@@ -80,8 +81,9 @@ ButtonToggle.propTypes = {
   color: PropTypes.string,
   onClick: PropTypes.func.isRequired,
   options: PropTypes.arrayOf(PropTypes.shape({
-    value: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
+    iconName: PropTypes.string,
     label: PropTypes.string,
+    value: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
   })).isRequired,
   textColor: PropTypes.string,
 };

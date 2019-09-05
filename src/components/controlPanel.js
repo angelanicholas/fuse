@@ -13,8 +13,14 @@ import { changeColor, changeGridType, changeToolType } from '../store/actions';
 import { colors, perlerColors } from '../util/colors';
 import { CELL_SIZE, GRID_TYPES, TOOL_TYPES } from '../util/constants';
 
-const gridTypeOptions = Object.values(GRID_TYPES).map(type => ({ value: type }));
-const toolTypeOptions = Object.values(TOOL_TYPES).map(type => ({ value: type }));
+const gridTypeOptions = Object.values(GRID_TYPES).map(type => ({
+  iconName: type.toLowerCase(),
+  value: type,
+}));
+const toolTypeOptions = Object.values(TOOL_TYPES).map(type => ({
+  iconName: type.toLowerCase(),
+  value: type,
+}));
 
 // styled components
 const Button = styled(ButtonComponent)`
