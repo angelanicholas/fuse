@@ -54,7 +54,7 @@ function color(state = initialColorState, action) {
   }
 };
 
-const initialGridTypeState = GRID_TYPES.lines;
+const initialGridTypeState = GRID_TYPES.pegs;
 function gridType(state = initialGridTypeState, action) {
   switch (action.type) {
     case CHANGE_GRID_TYPE:
@@ -64,7 +64,7 @@ function gridType(state = initialGridTypeState, action) {
   }
 };
 
-const initialToolTypeState = TOOL_TYPES.rectangle;
+const initialToolTypeState = TOOL_TYPES.pencil;
 function toolType(state = initialToolTypeState, action) {
   switch (action.type) {
     case CHANGE_TOOL_TYPE:

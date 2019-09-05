@@ -27,6 +27,8 @@ const Container = styled.div`
   box-shadow: 0 0 0.2em ${colors.transparentBlack};
   display: flex;
   flex-flow: column nowrap;
+  overflow-y: scroll;
+  overflow-x: none;
   padding: 0.5em 1em;
   position: absolute;
   right: 0;
@@ -77,7 +79,7 @@ const SummaryPanel = ({ canvas, usedColors }) => {
         </>
       ) : Object.values(canvasColors).map(bead => (
         <BeadSummary key={`beadSummary-${bead.color}`}>
-          <Bead color={bead.color} size={2} />
+          <Bead color={bead.color} size={1.8} />
           <Text>{bead.name}</Text>
           <Text>{bead.quantity}</Text>
         </BeadSummary>

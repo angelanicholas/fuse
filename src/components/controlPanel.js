@@ -29,14 +29,6 @@ const Button = styled(ButtonComponent)`
 const ButtonGroup = styled.div`
   display: flex;
   flex-flow: row nowrap;
-  justify-content: space-between;
-  button {
-    flex: 1;
-    margin-left: 1em;
-    &:first-child {
-      margin-left: 0;
-    }
-  }
 `;
 const ColorInfo = styled.div`
   align-items: center;
@@ -68,6 +60,14 @@ const Container = styled.div`
   width: ${CELL_SIZE * 12}px;
   left: 0;
 `;
+const Label = styled.p`
+  color: ${colors.gray};
+  font-size: 0.75em;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  padding: 1.5em 1em 0.5em;
+  text-transform: uppercase;
+`;
 
 const ControlPanel = ({
   canRedo,
@@ -85,7 +85,14 @@ const ControlPanel = ({
 }) => {
   return (
     <Container>
+      <Label>History</Label>
       <ButtonGroup>
+        <Button
+          label="Reset Canvas"
+          onClick={onReset}
+        >
+          <Icon name="reset" />
+        </Button>
         <Button
           disabled={!canUndo}
           label="Undo Action"
@@ -106,18 +113,14 @@ const ControlPanel = ({
         >
           <Icon name="save" />
         </Button>
-        <Button
-          label="Reset Canvas"
-          onClick={onReset}
-        >
-          <Icon name="reset" />
-        </Button>
       </ButtonGroup>
+      <Label>Grid Style</Label>
       <ButtonToggle
         activeIndex={gridTypeOptions.findIndex(o => o.value === gridType)}
         onClick={onGridTypeToggle}
         options={gridTypeOptions}
       />
+      <Label>Tool</Label>
       <ButtonToggle
         activeIndex={toolTypeOptions.findIndex(o => o.value === toolType)}
         onClick={onToolTypeToggle}

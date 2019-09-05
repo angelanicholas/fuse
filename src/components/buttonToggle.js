@@ -16,7 +16,10 @@ const Button = styled(ButtonComponent)`
   background-color: ${props => props.color};
   color: ${props => props.textColor};
   text-decoration: ${props => (props.isActive ? 'underline' : 'none')};
-  flex: 1;
+  &:focus,
+  &:hover {
+    color: ${colors.darkestGray};
+  }
   &:first-child {
     border-top-right-radius: 0;
     border-bottom-right-radius: 0;
@@ -68,7 +71,12 @@ class ButtonToggle extends Component {
             textColor={textColor}
             value={option.value}
           >
-            {option.iconName ? <Icon name={option.iconName} /> : option.label || option.value}
+            {option.iconName ? (
+              <Icon
+                name={option.iconName}
+                color={activeIndex === i ? colors.darkestGray : 'currentColor'}
+              />
+            ) : option.label || option.value}
           </Button>
         ))}
       </Container>
@@ -89,7 +97,7 @@ ButtonToggle.propTypes = {
 };
 ButtonToggle.defaultProps = {
   color: colors.white,
-  textColor: colors.darkGray,
+  textColor: colors.gray,
 };
 
 export default ButtonToggle;
