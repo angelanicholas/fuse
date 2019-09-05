@@ -132,14 +132,17 @@ class Canvas extends Component {
 
   handleDrag(ev) {
     switch (this.props.toolType) {
-      case TOOL_TYPES.pixel:
+      case TOOL_TYPES.bucket:
+        this.fillPixel(ev); // replace
+        break;
+      case TOOL_TYPES.eyedropper:
+        this.fillPixel(ev);
+        break;
+      case TOOL_TYPES.pencil:
         this.fillPixel(ev);
         break;
       case TOOL_TYPES.rectangle:
         this.drawRectangle(ev);
-        break;
-      case TOOL_TYPES.eyedropper:
-        this.fillPixel(ev);
         break;
       default:
         break;
