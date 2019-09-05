@@ -42,6 +42,7 @@ const ColorInfoText = styled.p`
   font-size: 1em;
   flex: 0.8;
   margin-left: 1em;
+  user-select: none;
 `;
 const ColorPalette = styled.div`
   display: flex;
@@ -67,6 +68,7 @@ const Label = styled.p`
   letter-spacing: 0.05em;
   padding: 1.5em 1em 0.5em;
   text-transform: uppercase;
+  user-select: none;
 `;
 
 const ControlPanel = ({

@@ -8,9 +8,14 @@ import { ActionCreators as UndoActionCreators } from 'redux-undo';
 
 import ControlPanel from './controlPanel';
 import SummaryPanel from './summaryPanel';
-import { colors, gridColors } from '../util/colors';
+import { colors, gridColors, perlerColors } from '../util/colors';
 import { clearCanvas, downloadCanvas } from '../util/canvas';
-import { clearCanvas as clearCanvasData, fillPixel, fillRectangle } from '../store/actions';
+import {
+  changeColor,
+  clearCanvas as clearCanvasData,
+  fillPixel,
+  fillRectangle,
+} from '../store/actions';
 import { batchGroupBy } from '../store/reducers';
 import {
   BLURRY_LINE_SHIFT,
@@ -175,18 +180,23 @@ class Canvas extends Component {
   }
 
   handleMouseDown(ev) {
-    batchGroupBy.start();
-    const eventCanvas = this.eventCanvas.current;
-    this.drawCell(this.lastEventRow, this.lastEventCol, 'event', null);
-    this.isRightClick = ev.buttons === 2;
+    const { toolType } = this.props;
 
-    if (this.props.toolType === TOOL_TYPES.rectangle) {
-      this.startRectangleCol = this.calcColFromMouseX(ev.clientX);
-      this.startRectangleRow = this.calcRowFromMouseY(ev.clientY);
+    if (toolType !== TOOL_TYPES.eyedropper) {
+      batchGroupBy.start();
+
+      const eventCanvas = this.eventCanvas.current;
+      this.drawCell(this.lastEventRow, this.lastEventCol, 'event', null);
+      this.isRightClick = ev.buttons === 2;
+
+      if (toolType === TOOL_TYPES.rectangle) {
+        this.startRectangleCol = this.calcColFromMouseX(ev.clientX);
+        this.startRectangleRow = this.calcRowFromMouseY(ev.clientY);
+      }
+
+      eventCanvas.removeEventListener('mousemove', this.handleMouseMove);
+      document.addEventListener('mousemove', this.handleDrag);
     }
-
-    eventCanvas.removeEventListener('mousemove', this.handleMouseMove);
-    document.addEventListener('mousemove', this.handleDrag);
   }
 
   handleMouseOut(ev) {
@@ -196,19 +206,32 @@ class Canvas extends Component {
   }
 
   handleMouseUp(ev) {
-    const eventCanvas = this.eventCanvas.current;
-    document.removeEventListener('mousemove', this.handleDrag);
-    eventCanvas.addEventListener('mousemove', this.handleMouseMove);
-    batchGroupBy.end();
+    const { toolType } = this.props;
 
-    if (this.props.toolType === TOOL_TYPES.rectangle
-      && !isNull(this.startRectangleRow)
-      && !isNull(this.startRectangleCol)) {
-        this.drawRectangle(ev);
-        this.startRectangleRow = null;
-        this.startRectangleCol = null;
+    if (toolType === TOOL_TYPES.eyedropper) {
+      const { canvas, eyedropper } = this.props;
+      const row = this.calcRowFromMouseY(ev.clientY);
+      const col = this.calcColFromMouseX(ev.clientX);
+
+      const clickedColor = canvas[row][col];
+      if (clickedColor) {
+        eyedropper(perlerColors.find(color => color.hex === clickedColor));
+      }
+    } else {
+      const eventCanvas = this.eventCanvas.current;
+      document.removeEventListener('mousemove', this.handleDrag);
+      eventCanvas.addEventListener('mousemove', this.handleMouseMove);
+      batchGroupBy.end();
+
+      if (toolType === TOOL_TYPES.rectangle
+        && !isNull(this.startRectangleRow)
+        && !isNull(this.startRectangleCol)) {
+          this.drawRectangle(ev);
+          this.startRectangleRow = null;
+          this.startRectangleCol = null;
+      }
+      this.isRightClick = false;
     }
-    this.isRightClick = false;
   }
 
   calcRowFromMouseY(y) {
@@ -439,6 +462,7 @@ const mapDispatchToProps = dispatch => {
     fillRectangle: (rowStart, rowEnd, colStart, colEnd, fill) => dispatch(
       fillRectangle(rowStart, rowEnd, colStart, colEnd, fill),
     ),
+    eyedropper: (color) => dispatch(changeColor(color)),
     redo: () => dispatch(UndoActionCreators.redo()),
     undo: () => dispatch(UndoActionCreators.undo()),
   };

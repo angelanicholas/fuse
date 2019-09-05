@@ -20,6 +20,7 @@ const Text = styled.p`
   font-size: 1em;
   flex: 0.8;
   margin-left: 1em;
+  user-select: none;
 `;
 const Container = styled.div`
   background-color: ${colors.white};
@@ -43,6 +44,7 @@ const InfoText = styled.p`
   line-height: 1.6;
   margin: 2em 1em 0 1em;
   text-align: center;
+  user-select: none;
 `;
 
 function getUsedColors(canvas) {
