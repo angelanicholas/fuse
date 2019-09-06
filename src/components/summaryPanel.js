@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import styled from 'styled-components';
 import { connect } from 'react-redux';
 import isEmpty from 'lodash/isEmpty';
+import orderBy from 'lodash/orderBy';
 import Bead from './bead';
 import { changeColor } from '../store/actions';
 import { colors, perlerColors, perlerHexStrings } from '../util/colors';
@@ -80,8 +81,8 @@ function getUsedColors(canvas) {
 const SummaryPanel = ({ canvas, handleBeadSummaryClick, usedColors }) => {
   const canvasColors = usedColors || getUsedColors(canvas);
   const isCanvasEmpty = isEmpty(canvasColors);
-  const quote = isCanvasEmpty ? canvasQuotes[Math.floor(Math.random() * canvasQuotes.length)] : {};
-
+  const quote = canvasQuotes[Math.floor(Math.random() * canvasQuotes.length)];
+  const sortedCanvasColors = orderBy(canvasColors, 'quantity', 'desc');
   return (
     <Container>
       {isCanvasEmpty ? (
@@ -89,7 +90,7 @@ const SummaryPanel = ({ canvas, handleBeadSummaryClick, usedColors }) => {
           <QuoteText>{quote.text}</QuoteText>
           <QuoteText>— {quote.author}</QuoteText>
         </>
-      ) : Object.values(canvasColors).map(({ color, name, quantity }) => (
+      ) : Object.values(sortedCanvasColors).map(({ color, name, quantity }) => (
         <BeadSummary
           key={`beadSummary-${color}`}
           onClick={() => handleBeadSummaryClick(perlerColors.find(perlerColor => perlerColor.hex === color))}
