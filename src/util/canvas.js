@@ -74,11 +74,20 @@ export const canvasQuotes = [{
   text: "It's so fine and yet so terrible to stand in front of a blank canvas.",
   author: 'Paul Cezanne',
 }, {
+  text: 'I am just another dot in the world.',
+  author: 'Yayoi Kusama',
+}, {
   text: 'A canvas is never empty.',
   author: 'Robert Rauschenberg',
 }, {
+  text: 'Every canvas is a journey all its own.',
+  author: 'Helen Frankenthaler',
+}, {
   text: 'The world is but a canvas to our imagination.',
   author: 'Henry David Thoreau',
+}, {
+  text: "To create one's own world in any of the arts takes courage.",
+  author: "Georgia O'Keeffe",
 }, {
   text: "The canvas paints itself. I'm just the middleman.",
   author: 'Peter Max',
