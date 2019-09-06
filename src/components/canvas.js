@@ -11,6 +11,7 @@ import SummaryPanel from './summaryPanel';
 import { colors, gridColors, perlerColors } from '../util/colors';
 import { clearCanvas, downloadCanvas } from '../util/canvas';
 import {
+  bucketFill,
   changeColor,
   clearCanvas as clearCanvasData,
   fillPixel,
@@ -137,9 +138,6 @@ class Canvas extends Component {
 
   handleDrag(ev) {
     switch (this.props.toolType) {
-      case TOOL_TYPES.bucket:
-        this.fillPixel(ev); // replace
-        break;
       case TOOL_TYPES.eyedropper:
         this.changeColor(ev);
         break;

@@ -53,6 +53,23 @@ export function downloadCanvas(canvas) {
   }
 }
 
+export function bucketFill(canvas, row, col, fill) {
+  const target = canvas[row][col];
+  function flow(row, col) {
+    if (row >= 0 && row < canvas.length && col >= 0 && col < canvas[row].length) {
+      if (canvas[row][col] === target) {
+        canvas[row][col] = fill;
+        flow(row - 1, col); // check up
+        flow(row + 1, col); // check down
+        flow(row, col - 1); // check left
+        flow(row, col + 1); // check right
+      }
+    }
+  }
+  flow(row, col);
+  return canvas;
+}
+
 export const canvasQuotes = [{
   text: "It's so fine and yet so terrible to stand in front of a blank canvas.",
   author: 'Paul Cezanne',

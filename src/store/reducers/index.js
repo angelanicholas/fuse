@@ -1,10 +1,12 @@
 import { combineReducers } from 'redux';
 import undoable, { excludeAction, groupByActionTypes } from 'redux-undo';
 import { GRID_TYPES, NUM_ROWS, TOOL_TYPES } from '../../util/constants';
+import { bucketFill } from '../../util/canvas';
 import { perlerColors } from '../../util/colors';
 import cloneDeep from 'lodash/cloneDeep';
 import cuid from 'cuid';
 import {
+  BUCKET_FILL,
   CLEAR_CANVAS,
   CHANGE_COLOR,
   CHANGE_GRID_TYPE,
@@ -37,6 +39,11 @@ function canvas(state = initialCanvasState, action) {
         }
       }
       return nextState;
+    }
+    case BUCKET_FILL: {
+      const { row, col, fill } = action;
+      const nextState = cloneDeep(state);
+      return bucketFill(nextState, row, col, fill);
     }
     default: {
       return state;
