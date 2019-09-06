@@ -141,7 +141,7 @@ class Canvas extends Component {
         this.fillPixel(ev); // replace
         break;
       case TOOL_TYPES.eyedropper:
-        this.fillPixel(ev);
+        this.changeColor(ev);
         break;
       case TOOL_TYPES.pencil:
         this.fillPixel(ev);
@@ -180,23 +180,22 @@ class Canvas extends Component {
   }
 
   handleMouseDown(ev) {
-    const { toolType } = this.props;
-
-    if (toolType !== TOOL_TYPES.eyedropper) {
+    if (this.props.toolType !== TOOL_TYPES.eyedropper) {
       batchGroupBy.start();
 
       const eventCanvas = this.eventCanvas.current;
       this.drawCell(this.lastEventRow, this.lastEventCol, 'event', null);
       this.isRightClick = ev.buttons === 2;
 
-      if (toolType === TOOL_TYPES.rectangle) {
+      if (this.props.toolType === TOOL_TYPES.rectangle) {
         this.startRectangleCol = this.calcColFromMouseX(ev.clientX);
         this.startRectangleRow = this.calcRowFromMouseY(ev.clientY);
       }
 
       eventCanvas.removeEventListener('mousemove', this.handleMouseMove);
-      document.addEventListener('mousemove', this.handleDrag);
     }
+
+    document.addEventListener('mousemove', this.handleDrag);
   }
 
   handleMouseOut(ev) {
@@ -207,22 +206,14 @@ class Canvas extends Component {
 
   handleMouseUp(ev) {
     const { toolType } = this.props;
+    document.removeEventListener('mousemove', this.handleDrag);
 
     if (toolType === TOOL_TYPES.eyedropper) {
-      const { canvas, eyedropper } = this.props;
-      const row = this.calcRowFromMouseY(ev.clientY);
-      const col = this.calcColFromMouseX(ev.clientX);
-
-      const clickedColor = canvas[row][col];
-      if (clickedColor) {
-        eyedropper(perlerColors.find(color => color.hex === clickedColor));
-      }
+      this.changeColor(ev);
     } else {
       const eventCanvas = this.eventCanvas.current;
-      document.removeEventListener('mousemove', this.handleDrag);
       eventCanvas.addEventListener('mousemove', this.handleMouseMove);
       batchGroupBy.end();
-
       if (toolType === TOOL_TYPES.rectangle
         && !isNull(this.startRectangleRow)
         && !isNull(this.startRectangleCol)) {
@@ -230,6 +221,7 @@ class Canvas extends Component {
           this.startRectangleRow = null;
           this.startRectangleCol = null;
       }
+
       this.isRightClick = false;
     }
   }
@@ -242,6 +234,15 @@ class Canvas extends Component {
   calcColFromMouseX(x) {
     const colIndex = Math.floor((x + this.scrollContainer.scrollLeft - this.gridCanvas.current.offsetLeft) / CELL_SIZE);
     return Math.min(Math.max(colIndex, 0), NUM_ROWS - 1);
+  }
+
+  changeColor(ev) {
+    const row = this.calcRowFromMouseY(ev.clientY);
+    const col = this.calcColFromMouseX(ev.clientX);
+    const clickedColor = this.props.canvas[row][col];
+    if (clickedColor) {
+      this.props.changeColor(perlerColors.find(color => color.hex === clickedColor));
+    }
   }
 
   downloadCanvas() {
@@ -456,13 +457,14 @@ const mapStateToProps = ({
 };
 const mapDispatchToProps = dispatch => {
   return {
+    bucketFill: (row, col, fill) => dispatch(bucketFill(row, col, fill)),
+    changeColor: (color) => dispatch(changeColor(color)),
     clearCanvasData: () => dispatch(clearCanvasData()),
     clearHistory: () => dispatch(UndoActionCreators.clearHistory()),
     fillPixel: (row, col, fill) => dispatch(fillPixel(row, col, fill)),
     fillRectangle: (rowStart, rowEnd, colStart, colEnd, fill) => dispatch(
       fillRectangle(rowStart, rowEnd, colStart, colEnd, fill),
     ),
-    eyedropper: (color) => dispatch(changeColor(color)),
     redo: () => dispatch(UndoActionCreators.redo()),
     undo: () => dispatch(UndoActionCreators.undo()),
   };
