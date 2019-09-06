@@ -5,11 +5,13 @@ import { colors } from '../util/colors';
 
 // styled components
 const Container = styled.div`
+  cursor: pointer;
+  padding: 0.25em;
+`;
+const Icon = styled.div`
   background-color: ${p => p.hex};
   border-radius: ${p => p.size / 2}px;
-  cursor: pointer;
   height: ${p => p.size}px;
-  margin: 0 0.4em 0.4em 0;
   position: relative;
   width: ${p => p.size}px;
   &:before {
@@ -31,15 +33,20 @@ const Swatch = ({
   isSelected,
   onClick,
   size,
+  ...rest,
 }) => (
   <Container
-    borderWidth={Math.floor(size / 10)}
-    hex={color.hex}
-    isSelected={isSelected}
     onClick={() => onClick(color)}
-    size={size}
-    title={color.name}
-  />
+    {...rest}
+  >
+    <Icon
+      borderWidth={Math.floor(size / 10)}
+      hex={color.hex}
+      isSelected={isSelected}
+      size={size}
+      title={color.name}
+    />
+  </Container>
 );
 
 Swatch.propTypes = {
@@ -53,7 +60,7 @@ Swatch.propTypes = {
 };
 
 Swatch.defaultProps = {
-  size: 22,
+  size: 20,
 };
 
 export default Swatch;
