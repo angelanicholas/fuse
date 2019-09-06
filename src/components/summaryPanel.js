@@ -4,6 +4,7 @@ import styled from 'styled-components';
 import { connect } from 'react-redux';
 import isEmpty from 'lodash/isEmpty';
 import Bead from './bead';
+import { changeColor } from '../store/actions';
 import { colors, perlerColors, perlerHexStrings } from '../util/colors';
 import { CELL_SIZE } from '../util/constants';
 import { canvasQuotes } from '../util/canvas';
@@ -11,24 +12,18 @@ import { canvasQuotes } from '../util/canvas';
 // styled components
 const BeadSummary = styled.div`
   align-items: center;
+  cursor: pointer;
   display: flex;
   flex-flow: row nowrap;
   padding: 1em;
 `;
-const Text = styled.p`
-  color: ${colors.darkGray};
-  font-size: 1em;
-  flex: 0.8;
-  margin-left: 1em;
-  user-select: none;
-`;
 const Container = styled.div`
   background-color: ${colors.white};
   bottom: 0;
-  box-shadow: 0 0 0.2em ${colors.transparentBlack};
+  box-shadow: 0 0 0.25em ${colors.mediumLightGray};
   display: flex;
   flex-flow: column nowrap;
-  overflow-y: scroll;
+  overflow-y: auto;
   overflow-x: none;
   padding: 0.5em 1em;
   position: absolute;
@@ -36,8 +31,23 @@ const Container = styled.div`
   top: 0;
   width: ${CELL_SIZE * 12}px;
 `;
-const InfoText = styled.p`
-  color: ${colors.mediumLightGray};
+const Text = styled.p`
+  color: ${colors.gray};
+  font-size: 0.75em;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  margin-left: 1em;
+  text-transform: uppercase;
+  user-select: none;
+`;
+const TextWrapper = styled.div`
+  display: flex;
+  flex-flow: row nowrap;
+  justify-content: space-between;
+  width: 100%;
+`;
+const QuoteText = styled.p`
+  color: ${colors.gray};
   font-size: 0.9em;
   font-weight: 500;
   letter-spacing: 0.02em;
@@ -67,7 +77,7 @@ function getUsedColors(canvas) {
   return usedColors;
 }
 
-const SummaryPanel = ({ canvas, usedColors }) => {
+const SummaryPanel = ({ canvas, handleBeadSummaryClick, usedColors }) => {
   const canvasColors = usedColors || getUsedColors(canvas);
   const isCanvasEmpty = isEmpty(canvasColors);
   const quote = isCanvasEmpty ? canvasQuotes[Math.floor(Math.random() * canvasQuotes.length)] : {};
@@ -76,14 +86,19 @@ const SummaryPanel = ({ canvas, usedColors }) => {
     <Container>
       {isCanvasEmpty ? (
         <>
-          <InfoText>{quote.text}</InfoText>
-          <InfoText>— {quote.author}</InfoText>
+          <QuoteText>{quote.text}</QuoteText>
+          <QuoteText>— {quote.author}</QuoteText>
         </>
-      ) : Object.values(canvasColors).map(bead => (
-        <BeadSummary key={`beadSummary-${bead.color}`}>
-          <Bead color={bead.color} size={1.8} />
-          <Text>{bead.name}</Text>
-          <Text>{bead.quantity}</Text>
+      ) : Object.values(canvasColors).map(({ color, name, quantity }) => (
+        <BeadSummary
+          key={`beadSummary-${color}`}
+          onClick={() => handleBeadSummaryClick(perlerColors.find(perlerColor => perlerColor.hex === color))}
+        >
+          <Bead color={color} size={1.5} />
+          <TextWrapper>
+            <Text>{name}</Text>
+            <Text>{quantity}</Text>
+          </TextWrapper>
         </BeadSummary>
       ))}
     </Container>
@@ -104,5 +119,10 @@ const mapStateToProps = ({ canvas }) => {
     canvas: canvas.present,
   };
 };
+const mapDispatchToProps = dispatch => {
+  return {
+    handleBeadSummaryClick: (color) => dispatch(changeColor(color)),
+  };
+};
 
-export default connect(mapStateToProps)(SummaryPanel);
+export default connect(mapStateToProps, mapDispatchToProps)(SummaryPanel);
