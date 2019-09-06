@@ -193,6 +193,7 @@ class Canvas extends Component {
       eventCanvas.removeEventListener('mousemove', this.handleMouseMove);
     }
 
+    this.isCanvasEvent = true;
     document.addEventListener('mousemove', this.handleDrag);
   }
 
@@ -203,24 +204,34 @@ class Canvas extends Component {
   }
 
   handleMouseUp(ev) {
-    const { toolType } = this.props;
-    document.removeEventListener('mousemove', this.handleDrag);
-
-    if (toolType === TOOL_TYPES.eyedropper) {
-      this.changeColor(ev);
-    } else {
-      const eventCanvas = this.eventCanvas.current;
-      eventCanvas.addEventListener('mousemove', this.handleMouseMove);
-      batchGroupBy.end();
-      if (toolType === TOOL_TYPES.rectangle
-        && !isNull(this.startRectangleRow)
-        && !isNull(this.startRectangleCol)) {
-          this.drawRectangle(ev);
-          this.startRectangleRow = null;
-          this.startRectangleCol = null;
+    if (this.isCanvasEvent) {
+      switch (this.props.toolType) {
+        case TOOL_TYPES.eyedropper:
+          this.changeColor(ev);
+          break;
+        default:
+          const eventCanvas = this.eventCanvas.current;
+          eventCanvas.addEventListener('mousemove', this.handleMouseMove);
+          batchGroupBy.end();
+          switch (this.props.toolType) {
+            case TOOL_TYPES.rectangle:
+              if (!isNull(this.startRectangleRow) && !isNull(this.startRectangleCol)) {
+                this.drawRectangle(ev);
+                this.startRectangleRow = null;
+                this.startRectangleCol = null;
+              }
+              break;
+            case TOOL_TYPES.pencil:
+              this.fillPixel(ev);
+              break;
+            default:
+              break;
+          }
+          break;
       }
-
       this.isRightClick = false;
+      this.isCanvasEvent = false;
+      document.removeEventListener('mousemove', this.handleDrag);
     }
   }
 
@@ -387,7 +398,7 @@ class Canvas extends Component {
     const { canvas, color } = this.props;
     const row = this.calcColFromMouseX(ev.clientX);
     const col = this.calcRowFromMouseY(ev.clientY);
-    const fill = ev.buttons === 2 ? null : color.hex;
+    const fill = ev.buttons === 2 || ev.button === 2 ? null : color.hex;
     if (canvas[col][row] !== fill) {
       this.drawCell(row, col, 'display', fill);
       this.props.fillPixel(col, row, fill);
