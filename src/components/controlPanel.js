@@ -1,11 +1,11 @@
-import React from 'react';
+import React, { useState } from 'react';
 import PropTypes from 'prop-types';
 import styled from 'styled-components';
 import { connect } from 'react-redux';
 import { ActionCreators as UndoActionCreators } from 'redux-undo';
 
 import Bead from './bead';
-import ButtonComponent from './button';
+import Button from './button';
 import ButtonToggle from './buttonToggle';
 import Icon from './icon';
 import Swatch from './swatch';
@@ -23,9 +23,6 @@ const toolTypeOptions = Object.values(TOOL_TYPES).map(type => ({
 }));
 
 // styled components
-const Button = styled(ButtonComponent)`
-  margin-bottom: 1em;
-`;
 const ButtonGroup = styled.div`
   display: flex;
   flex-flow: row nowrap;
@@ -33,29 +30,39 @@ const ButtonGroup = styled.div`
 const ColorInfo = styled.div`
   align-items: center;
   display: flex;
-  margin-bottom: 1em;
-  padding: 1em;
-  width: 100%;
+  margin: 1em 0.5em 1em;
+  padding-bottom: 2em;
+  border-bottom: 1px solid ${colors.lightGray};
+`;
+const ColorInfoTextWrapper = styled.div`
+  display: flex;
+  flex-flow: column nowrap;
+  height: 100%;
+  justify-content: center;
+  margin-left: 1em;
 `;
 const ColorInfoText = styled.p`
-  color: ${colors.darkGray};
-  font-size: 1em;
-  flex: 0.8;
-  margin-left: 1em;
+  color: ${colors.gray};
+  display: block;
+  font-size: 0.75em;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  margin: 0.2em 0;
+  text-transform: uppercase;
   user-select: none;
 `;
 const ColorPalette = styled.div`
   display: flex;
   flex-flow: row wrap;
-  margin-bottom: 1em;
+  margin: 1em 0 0 0em;
 `;
 const Container = styled.div`
   background-color: ${colors.white};
   bottom: 0;
-  box-shadow: 0 0 0.2em ${colors.transparentBlack};
+  box-shadow: 0 0 0.25em ${colors.mediumLightGray};
   display: flex;
   flex-flow: column nowrap;
-  padding: 0.5em 1em;
+  padding: 1em 1.5em;
   position: absolute;
   top: 0;
   width: ${CELL_SIZE * 12}px;
@@ -65,8 +72,8 @@ const Label = styled.p`
   color: ${colors.gray};
   font-size: 0.75em;
   font-weight: 500;
-  letter-spacing: 0.05em;
-  padding: 1.5em 1em 0.5em;
+  letter-spacing: 0.04em;
+  margin: 1.5em 0.5em 0.5em;
   text-transform: uppercase;
   user-select: none;
 `;
@@ -85,8 +92,29 @@ const ControlPanel = ({
   toolType,
   undo,
 }) => {
+  const [hoveredColor, setHoveredColor] = useState(null);
+  const beadColor = hoveredColor || color;
   return (
     <Container>
+      <ColorInfo>
+        <Bead color={beadColor.hex} />
+        <ColorInfoTextWrapper>
+          <ColorInfoText>{beadColor.name}</ColorInfoText>
+          <ColorInfoText>{beadColor.code}</ColorInfoText>
+        </ColorInfoTextWrapper>
+      </ColorInfo>
+      <Label>Grid Style</Label>
+      <ButtonToggle
+        activeIndex={gridTypeOptions.findIndex(o => o.value === gridType)}
+        onClick={onGridTypeToggle}
+        options={gridTypeOptions}
+      />
+      <Label>Tool</Label>
+      <ButtonToggle
+        activeIndex={toolTypeOptions.findIndex(o => o.value === toolType)}
+        onClick={onToolTypeToggle}
+        options={toolTypeOptions}
+      />
       <Label>History</Label>
       <ButtonGroup>
         <Button
@@ -116,24 +144,7 @@ const ControlPanel = ({
           <Icon name="save" />
         </Button>
       </ButtonGroup>
-      <Label>Grid Style</Label>
-      <ButtonToggle
-        activeIndex={gridTypeOptions.findIndex(o => o.value === gridType)}
-        onClick={onGridTypeToggle}
-        options={gridTypeOptions}
-      />
-      <Label>Tool</Label>
-      <ButtonToggle
-        activeIndex={toolTypeOptions.findIndex(o => o.value === toolType)}
-        onClick={onToolTypeToggle}
-        options={toolTypeOptions}
-      />
-      <ColorInfo>
-        <Bead color={color.hex} />
-        <ColorInfoText>
-          {color.name}
-        </ColorInfoText>
-      </ColorInfo>
+      <Label>Perler Colors</Label>
       <ColorPalette>
         {perlerColors.map(perlerColor => (
           <Swatch
@@ -141,6 +152,8 @@ const ControlPanel = ({
             isSelected={perlerColor.hex === color.hex}
             key={`Swatch-${perlerColor.hex}`}
             onClick={onSwatchClick}
+            onMouseOver={() => setHoveredColor(perlerColor)}
+            onMouseOut={() => setHoveredColor(null)}
           />
         ))}
       </ColorPalette>
@@ -171,7 +184,6 @@ const mapStateToProps = ({
     toolType,
   };
 };
-
 const mapDispatchToProps = dispatch => {
   return {
     onGridTypeToggle: (ev, toggleOption) => dispatch(changeGridType(toggleOption.value)),

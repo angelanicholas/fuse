@@ -9,7 +9,6 @@ import { colors } from '../util/colors';
 const Container = styled.div`
   display: flex;
   flex-flow: row nowrap;
-  margin-bottom: 1em;
   width: 100%;
 `;
 const Button = styled(ButtonComponent)`

@@ -56,7 +56,7 @@ Bead.propTypes = {
   size: PropTypes.number,
 };
 Bead.defaultProps = {
-  size: 3,
+  size: 2.5,
 };
 
 export default Bead;
