@@ -36,10 +36,12 @@ const Swatch = ({
   ...rest,
 }) => (
   <Container
+    className="swatchContainer"
     onClick={() => onClick(color)}
     {...rest}
   >
     <Icon
+      className="swatchIcon"
       borderWidth={Math.floor(size / 10)}
       hex={color.hex}
       isSelected={isSelected}

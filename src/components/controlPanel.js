@@ -55,6 +55,9 @@ const ColorPalette = styled.div`
   display: flex;
   flex-flow: row wrap;
   margin: 1em 0 0 0em;
+  .swatchContainer:last-child .swatchIcon {
+    border: 0.01em solid ${colors.lightGray};
+  }
 `;
 const Container = styled.div`
   background-color: ${colors.white};
