@@ -107,7 +107,11 @@ export default combineReducers({
       CHANGE_GRID_TYPE,
       CHANGE_TOOL_TYPE,
     ]),
-    groupBy: batchGroupBy.init([FILL_PIXEL, FILL_RECTANGLE])
+    groupBy: batchGroupBy.init([
+      BUCKET_FILL,
+      FILL_PIXEL,
+      FILL_RECTANGLE,
+    ])
   }),
   color,
   gridType,

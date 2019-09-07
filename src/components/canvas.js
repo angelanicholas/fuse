@@ -224,6 +224,12 @@ class Canvas extends Component {
             case TOOL_TYPES.pencil:
               this.fillPixel(ev);
               break;
+            case TOOL_TYPES.bucket:
+              const row = this.calcColFromMouseX(ev.clientX);
+              const col = this.calcRowFromMouseY(ev.clientY);
+              this.shouldCanvasReset = true;
+              this.props.bucketFill(row, col, this.props.color.hex);
+              break;
             default:
               break;
           }
