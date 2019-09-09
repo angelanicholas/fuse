@@ -70,13 +70,13 @@ class Canvas extends Component {
     this.displayCanvas = createRef();
     this.eventCanvas = createRef();
     this.gridCanvas = createRef();
+    this.bucketFilled = false;
+    this.isRightClick = false;
     this.lastEventRow = null;
     this.lastEventCol = null;
+    this.shouldCanvasReset = false;
     this.startRectangleRow = null;
     this.startRectangleCol = null;
-    this.shouldCanvasReset = false;
-    this.isRightClick = false;
-
     this.downloadCanvas = this.downloadCanvas.bind(this);
     this.handleDrag = throttle(this.handleDrag.bind(this), 5);
     this.handleKeyDown = this.handleKeyDown.bind(this);
@@ -119,6 +119,7 @@ class Canvas extends Component {
       this.props.clearHistory();
       this.shouldCanvasReset = false;
     }
+    this.bucketFilled = false;
     clearCanvas(this.gridCanvas.current);
     clearCanvas(this.displayCanvas.current);
     this.drawGrid();
@@ -130,9 +131,16 @@ class Canvas extends Component {
     const redoClicked = nextProps.historyIndex < historyIndex;
     const undoClicked = nextProps.historyIndex > historyIndex;
     const gridTypeChanged = nextProps.gridType !== gridType;
-    if (gridTypeChanged || undoClicked || redoClicked || this.shouldCanvasReset) {
+
+    if (gridTypeChanged
+      || undoClicked
+      || redoClicked
+      || this.shouldCanvasReset
+      || this.bucketFilled
+    ) {
       return true;
     }
+
     return false;
   }
 
@@ -225,9 +233,9 @@ class Canvas extends Component {
               this.fillPixel(ev);
               break;
             case TOOL_TYPES.bucket:
+              this.bucketFilled = true;
               const row = this.calcColFromMouseX(ev.clientX);
               const col = this.calcRowFromMouseY(ev.clientY);
-              this.shouldCanvasReset = true;
               this.props.bucketFill(row, col, this.props.color.hex);
               break;
             default:

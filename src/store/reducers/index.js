@@ -108,10 +108,10 @@ export default combineReducers({
       CHANGE_TOOL_TYPE,
     ]),
     groupBy: batchGroupBy.init([
-      BUCKET_FILL,
       FILL_PIXEL,
       FILL_RECTANGLE,
-    ])
+      BUCKET_FILL,
+    ]),
   }),
   color,
   gridType,

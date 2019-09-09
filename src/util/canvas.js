@@ -54,16 +54,23 @@ export function downloadCanvas(canvas) {
 }
 
 export function bucketFill(canvas, row, col, fill) {
-  const target = canvas[row][col];
+  const target = canvas[col][row];
+  const filledSet = new Set();
   function flow(row, col) {
-    if (row >= 0 && row < canvas.length && col >= 0 && col < canvas[row].length) {
-      if (canvas[row][col] === target) {
-        canvas[row][col] = fill;
-        flow(row - 1, col); // check up
-        flow(row + 1, col); // check down
-        flow(row, col - 1); // check left
-        flow(row, col + 1); // check right
-      }
+    const key = `${row}-${col}`;
+    if (row >= 0
+      && row < canvas.length
+      && col >= 0
+      && col < canvas[row].length
+      && canvas[col][row] === target
+      && !filledSet.has(key)
+    ) {
+      canvas[col][row] = fill;
+      filledSet.add(key);
+      flow(row - 1, col); // check up
+      flow(row + 1, col); // check down
+      flow(row, col - 1); // check left
+      flow(row, col + 1); // check right
     }
   }
   flow(row, col);
