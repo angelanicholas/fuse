@@ -5,6 +5,7 @@ export const CHANGE_TOOL_TYPE = 'CHANGE_TOOL_TYPE';
 export const CLEAR_CANVAS = 'CLEAR_CANVAS';
 export const FILL_PIXEL = 'FILL_PIXEL';
 export const FILL_RECTANGLE = 'FILL_RECTANGLE';
+export const SHIFT_CANVAS = 'SHIFT_CANVAS';
 
 export const bucketFill = (row, col, fill) => ({
   type: BUCKET_FILL,
@@ -55,3 +56,9 @@ export const fillRectangle = (
     rowStart,
   };
 };
+
+export const shiftCanvas = (x, y) => ({
+  type: SHIFT_CANVAS,
+  x,
+  y,
+});

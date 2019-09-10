@@ -54,7 +54,7 @@ export function downloadCanvas(canvas) {
 }
 
 export function bucketFill(canvas, row, col, fill) {
-  const target = canvas[col][row];
+  const target = canvas[row][col];
   const filledSet = new Set();
   function flow(row, col) {
     const key = `${row}-${col}`;
@@ -62,10 +62,10 @@ export function bucketFill(canvas, row, col, fill) {
       && row < canvas.length
       && col >= 0
       && col < canvas[row].length
-      && canvas[col][row] === target
+      && canvas[row][col] === target
       && !filledSet.has(key)
     ) {
-      canvas[col][row] = fill;
+      canvas[row][col] = fill;
       filledSet.add(key);
       flow(row - 1, col); // check up
       flow(row + 1, col); // check down

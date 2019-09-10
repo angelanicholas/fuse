@@ -16,6 +16,7 @@ import {
   clearCanvas as clearCanvasData,
   fillPixel,
   fillRectangle,
+  shiftCanvas,
 } from '../store/actions';
 import { batchGroupBy } from '../store/reducers';
 import {
@@ -70,13 +71,13 @@ class Canvas extends Component {
     this.displayCanvas = createRef();
     this.eventCanvas = createRef();
     this.gridCanvas = createRef();
-    this.bucketFilled = false;
     this.isRightClick = false;
     this.lastEventRow = null;
     this.lastEventCol = null;
-    this.shouldCanvasReset = false;
-    this.startRectangleRow = null;
-    this.startRectangleCol = null;
+    this.shouldCanvasUpdate = false;
+    this.shouldClearHistory = false;
+    this.startDragRow = null;
+    this.startDragCol = null;
     this.downloadCanvas = this.downloadCanvas.bind(this);
     this.handleDrag = throttle(this.handleDrag.bind(this), 5);
     this.handleKeyDown = this.handleKeyDown.bind(this);
@@ -115,13 +116,15 @@ class Canvas extends Component {
   }
 
   componentDidUpdate(prevProps, prevState) {
-    if (this.shouldCanvasReset) {
-      this.props.clearHistory();
-      this.shouldCanvasReset = false;
+    if (this.shouldCanvasUpdate) {
+      this.shouldCanvasUpdate = false;
     }
-    this.bucketFilled = false;
-    clearCanvas(this.gridCanvas.current);
+    if (this.shouldClearHistory) {
+      this.props.clearHistory();
+    }
     clearCanvas(this.displayCanvas.current);
+    clearCanvas(this.eventCanvas.current);
+    clearCanvas(this.gridCanvas.current);
     this.drawGrid();
     this.drawArt();
   }
@@ -131,16 +134,9 @@ class Canvas extends Component {
     const redoClicked = nextProps.historyIndex < historyIndex;
     const undoClicked = nextProps.historyIndex > historyIndex;
     const gridTypeChanged = nextProps.gridType !== gridType;
-
-    if (gridTypeChanged
-      || undoClicked
-      || redoClicked
-      || this.shouldCanvasReset
-      || this.bucketFilled
-    ) {
+    if (gridTypeChanged || undoClicked || redoClicked || this.shouldCanvasUpdate) {
       return true;
     }
-
     return false;
   }
 
@@ -154,6 +150,9 @@ class Canvas extends Component {
         break;
       case TOOL_TYPES.rectangle:
         this.drawRectangle(ev);
+        break;
+      case TOOL_TYPES.move:
+        this.shiftCanvas(ev);
         break;
       default:
         break;
@@ -186,17 +185,23 @@ class Canvas extends Component {
   }
 
   handleMouseDown(ev) {
-    if (this.props.toolType !== TOOL_TYPES.eyedropper) {
+    const { toolType } = this.props;
+    if (toolType !== TOOL_TYPES.eyedropper) {
       batchGroupBy.start();
 
       const eventCanvas = this.eventCanvas.current;
       this.drawCell(this.lastEventRow, this.lastEventCol, 'event', null);
       this.isRightClick = ev.buttons === 2;
 
-      if (this.props.toolType === TOOL_TYPES.rectangle) {
-        this.startRectangleCol = this.calcColFromMouseX(ev.clientX);
-        this.startRectangleRow = this.calcRowFromMouseY(ev.clientY);
+      if (toolType === TOOL_TYPES.rectangle || toolType === TOOL_TYPES.move) {
+        this.startDragCol = this.calcColFromMouseX(ev.clientX);
+        this.startDragRow = this.calcRowFromMouseY(ev.clientY);
+        if (toolType === TOOL_TYPES.move) {
+          this.ctx.event.drawImage(this.displayCanvas.current, 0, 0, SIZE, SIZE);
+          this.displayCanvas.current.style.zIndex = '-1';
+        }
       }
+
 
       eventCanvas.removeEventListener('mousemove', this.handleMouseMove);
     }
@@ -222,24 +227,38 @@ class Canvas extends Component {
           eventCanvas.addEventListener('mousemove', this.handleMouseMove);
           batchGroupBy.end();
           switch (this.props.toolType) {
-            case TOOL_TYPES.rectangle:
-              if (!isNull(this.startRectangleRow) && !isNull(this.startRectangleCol)) {
+            case TOOL_TYPES.rectangle: {
+              if (!isNull(this.startDragRow) && !isNull(this.startDragCol)) {
                 this.drawRectangle(ev);
-                this.startRectangleRow = null;
-                this.startRectangleCol = null;
+                this.startDragRow = null;
+                this.startDragCol = null;
               }
               break;
-            case TOOL_TYPES.pencil:
+            }
+            case TOOL_TYPES.pencil: {
               this.fillPixel(ev);
               break;
-            case TOOL_TYPES.bucket:
-              this.bucketFilled = true;
-              const row = this.calcColFromMouseX(ev.clientX);
-              const col = this.calcRowFromMouseY(ev.clientY);
+            }
+            case TOOL_TYPES.bucket: {
+              const row = this.calcRowFromMouseY(ev.clientY);
+              const col = this.calcColFromMouseX(ev.clientX);
               this.props.bucketFill(row, col, this.props.color.hex);
+              this.shouldCanvasUpdate = true;
               break;
-            default:
+            }
+            case TOOL_TYPES.move: {
+              this.displayCanvas.current.style.zIndex = '0';
+              const row = Math.min(this.calcRowFromMouseY(ev.clientY) - this.startDragRow, NUM_ROWS);
+              const col = Math.min(this.calcColFromMouseX(ev.clientX) - this.startDragCol, NUM_ROWS);
+              this.props.shiftCanvas(col, row);
+              clearCanvas(this.displayCanvas.current);
+              this.ctx.display.drawImage(this.eventCanvas.current, 0, 0, SIZE, SIZE);
+              clearCanvas(this.eventCanvas.current);
               break;
+            }
+            default: {
+              break;
+            }
           }
           break;
       }
@@ -287,19 +306,19 @@ class Canvas extends Component {
     const isPegs = this.props.gridType === GRID_TYPES.pegs;
     let col = Math.min(Math.max(0, this.calcColFromMouseX(ev.clientX)), NUM_ROWS - 1);
     let row = Math.min(Math.max(0, this.calcRowFromMouseY(ev.clientY)), NUM_ROWS - 1);
-    let { startRectangleCol, startRectangleRow } = this;
-    let height = col - startRectangleCol;
-    let width = row - startRectangleRow;
+    let { startDragCol, startDragRow } = this;
+    let height = col - startDragCol;
+    let width = row - startDragRow;
 
     // if dragging above initial onClick, draw in reverse
     if (height < 0) {
       if (isPegs) {
-        startRectangleCol = col;
-        col = this.startRectangleCol;
+        startDragCol = col;
+        col = this.startDragCol;
         height = Math.abs(height) + 1;
       } else {
         height -= 1;
-        startRectangleCol += 1;
+        startDragCol += 1;
       }
     } else {
       height += 1;
@@ -307,12 +326,12 @@ class Canvas extends Component {
     // if dragging left of initial click, draw in reverse
     if (width < 0) {
       if (isPegs) {
-        startRectangleRow = row;
-        row = this.startRectangleRow;
+        startDragRow = row;
+        row = this.startDragRow;
         width = Math.abs(width) + 1;
       } else {
         width -= 1;
-        startRectangleRow += 1;
+        startDragRow += 1;
       }
     } else {
       width += 1;
@@ -324,8 +343,8 @@ class Canvas extends Component {
     canvas.fillStyle = fill;
 
     const rectArgs = [
-      startRectangleCol * CELL_SIZE,
-      startRectangleRow * CELL_SIZE,
+      startDragCol * CELL_SIZE,
+      startDragRow * CELL_SIZE,
       height * CELL_SIZE,
       width * CELL_SIZE,
     ];
@@ -333,8 +352,8 @@ class Canvas extends Component {
     clearCanvas(this.eventCanvas.current);
 
     if (isPegs) {
-      for (let i = startRectangleCol; i <= col; i++) {
-        for (let j = startRectangleRow; j <= row; j++) {
+      for (let i = startDragCol; i <= col; i++) {
+        for (let j = startDragRow; j <= row; j++) {
           this.drawCell(i, j, canvasName, fill);
         }
       }
@@ -344,9 +363,9 @@ class Canvas extends Component {
 
     if (!isDragging) {
       this.props.fillRectangle(
-        startRectangleRow,
+        startDragRow,
         row,
-        startRectangleCol,
+        startDragCol,
         col,
         this.isRightClick ? null : fill,
       );
@@ -420,8 +439,18 @@ class Canvas extends Component {
   }
 
   resetCanvas() {
-    this.shouldCanvasReset = true;
+    this.shouldCanvasUpdate = true;
+    this.shouldClearHistory = true;
     this.props.clearCanvasData();
+  }
+
+  shiftCanvas(ev) {
+    const row = this.calcRowFromMouseY(ev.clientY);
+    const col = this.calcColFromMouseX(ev.clientX);
+    const x = Math.min(col - this.startDragCol, NUM_ROWS) * CELL_SIZE;
+    const y = Math.min(row - this.startDragRow, NUM_ROWS) * CELL_SIZE;
+    clearCanvas(this.eventCanvas.current);
+    this.ctx.event.drawImage(this.displayCanvas.current, x, y, SIZE, SIZE);
   }
 
   render() {
@@ -489,6 +518,7 @@ const mapDispatchToProps = dispatch => {
       fillRectangle(rowStart, rowEnd, colStart, colEnd, fill),
     ),
     redo: () => dispatch(UndoActionCreators.redo()),
+    shiftCanvas: (x, y) => dispatch(shiftCanvas(x, y)),
     undo: () => dispatch(UndoActionCreators.undo()),
   };
 };

@@ -13,6 +13,7 @@ import {
   CHANGE_TOOL_TYPE,
   FILL_PIXEL,
   FILL_RECTANGLE,
+  SHIFT_CANVAS,
 } from '../actions';
 
 function newCanvas() {
@@ -44,6 +45,33 @@ function canvas(state = initialCanvasState, action) {
       const { row, col, fill } = action;
       const nextState = cloneDeep(state);
       return bucketFill(nextState, row, col, fill);
+    }
+    case SHIFT_CANVAS: {
+      let { x, y } = action;
+      const nextState = cloneDeep(state);
+      while (x > 0) {
+        nextState.forEach((row) => {
+          row.pop();
+          row.unshift(null);
+        });
+        x--;
+      }
+      while (x < 0) {
+        nextState.forEach((row) => {
+          row.shift();
+          row.push(null);
+        });
+        x++;
+      }
+      while (y > 0) {
+        nextState.unshift(nextState.pop().map(() => null));
+        y--;
+      }
+      while (y < 0) {
+        nextState.push(nextState.shift().map(() => null));
+        y++;
+      }
+      return nextState;
     }
     default: {
       return state;

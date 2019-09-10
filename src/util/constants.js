@@ -10,4 +10,5 @@ export const TOOL_TYPES = {
   rectangle: 'Rectangle',
   bucket: 'Bucket',
   eyedropper: 'Eyedropper',
+  move: 'Move',
  };
