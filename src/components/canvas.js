@@ -180,8 +180,8 @@ class Canvas extends Component {
   }
 
   handleMouseMove(ev) {
-    const row = this.calcColFromMouseX(ev.clientX);
-    const col = this.calcRowFromMouseY(ev.clientY);
+    const row = this.calcRowFromMouseY(ev.clientY);
+    const col = this.calcColFromMouseX(ev.clientX);
 
     if (!isNull(this.lastEventRow) && !isNull(this.lastEventCol)) {
       this.drawCell(this.lastEventRow, this.lastEventCol, 'event', null);
@@ -207,8 +207,8 @@ class Canvas extends Component {
         break;
       case TOOL_TYPES.move:
         this.drawCell(this.lastEventRow, this.lastEventCol, 'event', null);
-        this.startDragCol = this.calcColFromMouseX(ev.clientX);
         this.startDragRow = this.calcRowFromMouseY(ev.clientY);
+        this.startDragCol = this.calcColFromMouseX(ev.clientX);
         this.gridCanvas.current.style.zIndex = this.props.gridType === GRID_TYPES.lines ? '3' : '0';
         this.ctx.event.drawImage(this.displayCanvas.current, 0, 0, SIZE, SIZE);
         this.displayCanvas.current.style.zIndex = '-1';
@@ -305,7 +305,7 @@ class Canvas extends Component {
   drawArt() {
     for (let i = 0; i < NUM_ROWS; i += 1) {
       for (let j = 0; j < NUM_ROWS; j += 1) {
-        this.drawCell(i, j, 'display', this.props.canvas[j][i]);
+        this.drawCell(i, j, 'display', this.props.canvas[i][j]);
       }
     }
   }
@@ -350,7 +350,8 @@ class Canvas extends Component {
 
     // if dragging, draw a transparent shape on event canvas,
     // otherwise fill shape with selected color to paint on display canvas
-    const fill = isDragging ? colors.transparentBlack : this.props.color.hex;
+    const color = this.isRightClick ? null : this.props.color.hex;
+    const fill = isDragging ? colors.transparentBlack : color;
     canvas.fillStyle = fill;
 
     const rectArgs = [
@@ -363,8 +364,8 @@ class Canvas extends Component {
     clearCanvas(this.eventCanvas.current);
 
     if (isPegs) {
-      for (let i = startDragCol; i <= col; i++) {
-        for (let j = startDragRow; j <= row; j++) {
+      for (let i = startDragRow; i <= row; i++) {
+        for (let j = startDragCol; j <= col; j++) {
           this.drawCell(i, j, canvasName, fill);
         }
       }
@@ -387,11 +388,11 @@ class Canvas extends Component {
     }
   }
 
-  drawCell(rowCount, colCount, canvasName, fill) {
+  drawCell(row, col, canvasName, fill) {
     const { gridType } = this.props;
     const canvas = this.ctx[canvasName];
-    const rectArgs = [rowCount * CELL_SIZE, colCount * CELL_SIZE, CELL_SIZE, CELL_SIZE];
-    const arcArgs = [rowCount * CELL_SIZE + PEG_SHIFT, colCount * CELL_SIZE + PEG_SHIFT,
+    const rectArgs = [col * CELL_SIZE, row * CELL_SIZE, CELL_SIZE, CELL_SIZE];
+    const arcArgs = [col * CELL_SIZE + PEG_SHIFT, row * CELL_SIZE + PEG_SHIFT,
       2, 0, 2 * Math.PI];
     canvas.lineWidth = 0.5;
 
@@ -440,12 +441,12 @@ class Canvas extends Component {
 
   fillPixel(ev) {
     const { canvas, color } = this.props;
-    const row = this.calcColFromMouseX(ev.clientX);
-    const col = this.calcRowFromMouseY(ev.clientY);
+    const row = this.calcRowFromMouseY(ev.clientY);
+    const col = this.calcColFromMouseX(ev.clientX);
     const fill = ev.buttons === 2 || ev.button === 2 ? null : color.hex;
-    if (canvas[col][row] !== fill) {
+    if (canvas[row][col] !== fill) {
       this.drawCell(row, col, 'display', fill);
-      this.props.fillPixel(col, row, fill);
+      this.props.fillPixel(row, col, fill);
     }
   }
 
