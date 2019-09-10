@@ -68,9 +68,11 @@ const GridCanvas = styled.canvas`
 class Canvas extends Component {
   constructor() {
     super();
+
     this.displayCanvas = createRef();
     this.eventCanvas = createRef();
     this.gridCanvas = createRef();
+
     this.isRightClick = false;
     this.lastEventRow = null;
     this.lastEventCol = null;
@@ -78,6 +80,7 @@ class Canvas extends Component {
     this.shouldClearHistory = false;
     this.startDragRow = null;
     this.startDragCol = null;
+
     this.downloadCanvas = this.downloadCanvas.bind(this);
     this.handleDrag = throttle(this.handleDrag.bind(this), 5);
     this.handleKeyDown = this.handleKeyDown.bind(this);
@@ -122,6 +125,7 @@ class Canvas extends Component {
     if (this.shouldClearHistory) {
       this.props.clearHistory();
     }
+    this.gridCanvas.current.style.zIndex = this.props.gridType === GRID_TYPES.lines ? '1' : '0';
     clearCanvas(this.displayCanvas.current);
     clearCanvas(this.eventCanvas.current);
     clearCanvas(this.gridCanvas.current);
@@ -131,12 +135,15 @@ class Canvas extends Component {
 
   shouldComponentUpdate(nextProps) {
     const { gridType, historyIndex } = this.props;
+
     const redoClicked = nextProps.historyIndex < historyIndex;
     const undoClicked = nextProps.historyIndex > historyIndex;
     const gridTypeChanged = nextProps.gridType !== gridType;
+
     if (gridTypeChanged || undoClicked || redoClicked || this.shouldCanvasUpdate) {
       return true;
     }
+
     return false;
   }
 
@@ -161,6 +168,7 @@ class Canvas extends Component {
 
   handleKeyDown(ev) {
     ev.preventDefault();
+
     if (ev.ctrlKey|| ev.metaKey) {
       if (ev.key === 'z') {
         this.props.undo();
@@ -178,35 +186,40 @@ class Canvas extends Component {
     if (!isNull(this.lastEventRow) && !isNull(this.lastEventCol)) {
       this.drawCell(this.lastEventRow, this.lastEventCol, 'event', null);
     }
-    this.drawCell(row, col, 'event', colors.transparentBlack);
 
+    this.drawCell(row, col, 'event', colors.transparentBlack);
     this.lastEventRow = row;
     this.lastEventCol = col;
   }
 
   handleMouseDown(ev) {
-    const { toolType } = this.props;
-    if (toolType !== TOOL_TYPES.eyedropper) {
-      batchGroupBy.start();
-
-      const eventCanvas = this.eventCanvas.current;
-      this.drawCell(this.lastEventRow, this.lastEventCol, 'event', null);
-      this.isRightClick = ev.buttons === 2;
-
-      if (toolType === TOOL_TYPES.rectangle || toolType === TOOL_TYPES.move) {
+    switch (this.props.toolType) {
+      case TOOL_TYPES.rectangle:
         this.startDragCol = this.calcColFromMouseX(ev.clientX);
         this.startDragRow = this.calcRowFromMouseY(ev.clientY);
-        if (toolType === TOOL_TYPES.move) {
-          this.ctx.event.drawImage(this.displayCanvas.current, 0, 0, SIZE, SIZE);
-          this.displayCanvas.current.style.zIndex = '-1';
-        }
-      }
-
-
-      eventCanvas.removeEventListener('mousemove', this.handleMouseMove);
+        this.drawCell(this.lastEventRow, this.lastEventCol, 'event', null);
+        this.eventCanvas.current.removeEventListener('mousemove', this.handleMouseMove);
+        break;
+      case TOOL_TYPES.pencil:
+        batchGroupBy.start();
+        this.drawCell(this.lastEventRow, this.lastEventCol, 'event', null);
+        this.eventCanvas.current.removeEventListener('mousemove', this.handleMouseMove);
+        break;
+      case TOOL_TYPES.move:
+        this.drawCell(this.lastEventRow, this.lastEventCol, 'event', null);
+        this.startDragCol = this.calcColFromMouseX(ev.clientX);
+        this.startDragRow = this.calcRowFromMouseY(ev.clientY);
+        this.gridCanvas.current.style.zIndex = this.props.gridType === GRID_TYPES.lines ? '3' : '0';
+        this.ctx.event.drawImage(this.displayCanvas.current, 0, 0, SIZE, SIZE);
+        this.displayCanvas.current.style.zIndex = '-1';
+        this.eventCanvas.current.removeEventListener('mousemove', this.handleMouseMove);
+        break;
+      default:
+        break;
     }
 
     this.isCanvasEvent = true;
+    this.isRightClick = ev.buttons === 2;
     document.addEventListener('mousemove', this.handleDrag);
   }
 
@@ -223,42 +236,40 @@ class Canvas extends Component {
           this.changeColor(ev);
           break;
         default:
-          const eventCanvas = this.eventCanvas.current;
-          eventCanvas.addEventListener('mousemove', this.handleMouseMove);
-          batchGroupBy.end();
+          this.eventCanvas.current.addEventListener('mousemove', this.handleMouseMove);
           switch (this.props.toolType) {
-            case TOOL_TYPES.rectangle: {
-              if (!isNull(this.startDragRow) && !isNull(this.startDragCol)) {
-                this.drawRectangle(ev);
-                this.startDragRow = null;
-                this.startDragCol = null;
-              }
+            case TOOL_TYPES.rectangle:
+              this.drawRectangle(ev);
+              this.startDragRow = null;
+              this.startDragCol = null;
               break;
-            }
-            case TOOL_TYPES.pencil: {
+            case TOOL_TYPES.pencil:
+              batchGroupBy.end();
               this.fillPixel(ev);
               break;
-            }
-            case TOOL_TYPES.bucket: {
-              const row = this.calcRowFromMouseY(ev.clientY);
-              const col = this.calcColFromMouseX(ev.clientX);
-              this.props.bucketFill(row, col, this.props.color.hex);
+            case TOOL_TYPES.bucket:
               this.shouldCanvasUpdate = true;
+              this.props.bucketFill(
+                this.calcRowFromMouseY(ev.clientY),
+                this.calcColFromMouseX(ev.clientX),
+                this.props.color.hex,
+              );
               break;
-            }
-            case TOOL_TYPES.move: {
+            case TOOL_TYPES.move:
+              this.gridCanvas.current.style.zIndex = this.props.gridType === GRID_TYPES.lines ? '1' : '0';
               this.displayCanvas.current.style.zIndex = '0';
-              const row = Math.min(this.calcRowFromMouseY(ev.clientY) - this.startDragRow, NUM_ROWS);
-              const col = Math.min(this.calcColFromMouseX(ev.clientX) - this.startDragCol, NUM_ROWS);
-              this.props.shiftCanvas(col, row);
+              this.props.shiftCanvas(
+                Math.min(this.calcColFromMouseX(ev.clientX) - this.startDragCol, NUM_ROWS),
+                Math.min(this.calcRowFromMouseY(ev.clientY) - this.startDragRow, NUM_ROWS),
+              );
+              this.startDragRow = null;
+              this.startDragCol = null;
               clearCanvas(this.displayCanvas.current);
               this.ctx.display.drawImage(this.eventCanvas.current, 0, 0, SIZE, SIZE);
               clearCanvas(this.eventCanvas.current);
               break;
-            }
-            default: {
+            default:
               break;
-            }
           }
           break;
       }
