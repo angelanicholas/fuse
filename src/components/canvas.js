@@ -197,6 +197,7 @@ class Canvas extends Component {
   }
 
   handleMouseDown(ev) {
+    batchGroupBy.start();
     switch (this.props.toolType) {
       case TOOL_TYPES.rectangle:
         this.startDragCol = this.calcColFromMouseX(ev.clientX);
@@ -205,7 +206,6 @@ class Canvas extends Component {
         this.eventCanvas.current.removeEventListener('mousemove', this.handleMouseMove);
         break;
       case TOOL_TYPES.pencil:
-        batchGroupBy.start();
         this.drawCell(this.lastEventRow, this.lastEventCol, 'event', null);
         this.eventCanvas.current.removeEventListener('mousemove', this.handleMouseMove);
         break;
@@ -235,6 +235,7 @@ class Canvas extends Component {
 
   handleMouseUp(ev) {
     if (this.isCanvasEvent) {
+      batchGroupBy.end();
       switch (this.props.toolType) {
         case TOOL_TYPES.eyedropper:
           this.changeColor(ev);
@@ -250,7 +251,6 @@ class Canvas extends Component {
               this.startDragCol = null;
               break;
             case TOOL_TYPES.pencil:
-              batchGroupBy.end();
               this.fillPixel(ev);
               break;
             case TOOL_TYPES.bucket:

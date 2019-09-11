@@ -137,6 +137,9 @@ export default combineReducers({
     ]),
     groupBy: batchGroupBy.init([
       FILL_PIXEL,
+      FILL_RECTANGLE,
+      BUCKET_FILL,
+      SHIFT_CANVAS,
     ]),
   }),
   color,
