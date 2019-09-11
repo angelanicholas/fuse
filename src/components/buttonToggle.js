@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React from 'react';
 import PropTypes from 'prop-types';
 import styled from 'styled-components';
 import ButtonComponent from './button';
@@ -34,57 +34,37 @@ const Button = styled(ButtonComponent)`
   }
 `;
 
-class ButtonToggle extends Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      activeIndex: props.activeIndex,
-    };
-    this.handleClick = this.handleClick.bind(this);
-  }
-
-  handleClick(ev, option, i) {
-    this.setState({ activeIndex: i });
-    this.props.onClick(ev, option);
-  }
-
-  render() {
-    const {
-      color,
-      options,
-      onClick,
-      textColor,
-      ...rest
-    } = this.props;
-    const { activeIndex } = this.state;
-
-    return (
-      <Container {...rest}>
-        {options.map((option, i) => (
-          <Button
-            color={color}
-            isActive={activeIndex === i}
-            key={`toggleButton-${option.label || option.value}`}
-            label={option.label || option.value}
-            onClick={ev => this.handleClick(ev, option, i)}
-            textColor={textColor}
-            value={option.value}
-          >
-            {option.iconName ? (
-              <Icon
-                name={option.iconName}
-                color={activeIndex === i ? colors.darkestGray : 'currentColor'}
-              />
-            ) : option.label || option.value}
-          </Button>
-        ))}
-      </Container>
-    );
-  }
-}
+const ButtonToggle = ({
+  color,
+  options,
+  onClick,
+  textColor,
+  value,
+  ...rest
+}) => (
+  <Container {...rest}>
+    {options.map(option => (
+      <Button
+        color={color}
+        isActive={value === option.value}
+        key={`toggleButton-${option.label || option.value}`}
+        label={option.label || option.value}
+        onClick={ev => onClick(ev, option)}
+        textColor={textColor}
+        value={option.value}
+      >
+        {option.iconName ? (
+          <Icon
+            name={option.iconName}
+            color={value === option.value ? colors.darkestGray : 'currentColor'}
+          />
+        ) : option.label || option.value}
+      </Button>
+    ))}
+  </Container>
+);
 
 ButtonToggle.propTypes = {
-  activeIndex: PropTypes.number.isRequired,
   color: PropTypes.string,
   onClick: PropTypes.func.isRequired,
   options: PropTypes.arrayOf(PropTypes.shape({
@@ -93,6 +73,7 @@ ButtonToggle.propTypes = {
     value: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
   })).isRequired,
   textColor: PropTypes.string,
+  value: PropTypes.string.isRequired,
 };
 ButtonToggle.defaultProps = {
   color: colors.white,

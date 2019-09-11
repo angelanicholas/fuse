@@ -10,15 +10,16 @@ import ControlPanel from './controlPanel';
 import SummaryPanel from './summaryPanel';
 import { colors, gridColors, perlerColors } from '../util/colors';
 import { clearCanvas, downloadCanvas } from '../util/canvas';
+import { batchGroupBy } from '../store/reducers';
 import {
   bucketFill,
   changeColor,
+  changeToolType,
   clearCanvas as clearCanvasData,
   fillPixel,
   fillRectangle,
   shiftCanvas,
 } from '../store/actions';
-import { batchGroupBy } from '../store/reducers';
 import {
   BLURRY_LINE_SHIFT,
   CELL_SIZE,
@@ -76,6 +77,7 @@ class Canvas extends Component {
     this.isRightClick = false;
     this.lastEventRow = null;
     this.lastEventCol = null;
+    this.lastToolType = null;
     this.shouldCanvasUpdate = false;
     this.shouldClearHistory = false;
     this.startDragRow = null;
@@ -134,12 +136,14 @@ class Canvas extends Component {
   }
 
   shouldComponentUpdate(nextProps) {
-    const { gridType, historyIndex } = this.props;
-
+    const { gridType, historyIndex, toolType } = this.props;
     const redoClicked = nextProps.historyIndex < historyIndex;
     const undoClicked = nextProps.historyIndex > historyIndex;
     const gridTypeChanged = nextProps.gridType !== gridType;
 
+    if (toolType !== TOOL_TYPES.eyedropper && nextProps.toolType === TOOL_TYPES.eyedropper) {
+      this.lastToolType = toolType;
+    }
     if (gridTypeChanged || undoClicked || redoClicked || this.shouldCanvasUpdate) {
       return true;
     }
@@ -234,6 +238,8 @@ class Canvas extends Component {
       switch (this.props.toolType) {
         case TOOL_TYPES.eyedropper:
           this.changeColor(ev);
+          this.props.changeToolType(this.lastToolType);
+          this.lastToolType = null;
           break;
         default:
           this.eventCanvas.current.addEventListener('mousemove', this.handleMouseMove);
@@ -522,7 +528,8 @@ const mapStateToProps = ({
 const mapDispatchToProps = dispatch => {
   return {
     bucketFill: (row, col, fill) => dispatch(bucketFill(row, col, fill)),
-    changeColor: (color) => dispatch(changeColor(color)),
+    changeColor: color => dispatch(changeColor(color)),
+    changeToolType: toolType => dispatch(changeToolType(toolType)),
     clearCanvasData: () => dispatch(clearCanvasData()),
     clearHistory: () => dispatch(UndoActionCreators.clearHistory()),
     fillPixel: (row, col, fill) => dispatch(fillPixel(row, col, fill)),

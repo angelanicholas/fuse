@@ -9,9 +9,9 @@ import Button from './button';
 import ButtonToggle from './buttonToggle';
 import Icon from './icon';
 import Swatch from './swatch';
-import { changeColor, changeGridType, changeToolType } from '../store/actions';
 import { colors, perlerColors } from '../util/colors';
 import { CELL_SIZE, GRID_TYPES, TOOL_TYPES } from '../util/constants';
+import { changeColor, changeGridType, changeToolType } from '../store/actions';
 
 const gridTypeOptions = Object.values(GRID_TYPES).map(type => ({
   iconName: type.toLowerCase(),
@@ -108,15 +108,15 @@ const ControlPanel = ({
       </ColorInfo>
       <Label>Grid Style</Label>
       <ButtonToggle
-        activeIndex={gridTypeOptions.findIndex(o => o.value === gridType)}
         onClick={onGridTypeToggle}
         options={gridTypeOptions}
+        value={gridType}
       />
       <Label>Tool</Label>
       <ButtonToggle
-        activeIndex={toolTypeOptions.findIndex(o => o.value === toolType)}
         onClick={onToolTypeToggle}
         options={toolTypeOptions}
+        value={toolType}
       />
       <Label>History</Label>
       <ButtonGroup>
