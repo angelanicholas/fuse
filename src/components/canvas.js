@@ -8,7 +8,7 @@ import { ActionCreators as UndoActionCreators } from 'redux-undo';
 
 import ControlPanel from './controlPanel';
 import SummaryPanel from './summaryPanel';
-import { colors, gridColors, perlerColors } from '../util/colors';
+import { colors, perlerColors, tileColors } from '../util/colors';
 import { clearCanvas, downloadCanvas } from '../util/canvas';
 import { batchGroupBy } from '../store/reducers';
 import {
@@ -83,7 +83,8 @@ class Canvas extends Component {
     this.startDragRow = null;
     this.startDragCol = null;
 
-    this.downloadCanvas = this.downloadCanvas.bind(this);
+    this.save = this.save.bind(this);
+    this.saveWithGrid = this.saveWithGrid.bind(this);
     this.handleDrag = throttle(this.handleDrag.bind(this), 5);
     this.handleKeyDown = this.handleKeyDown.bind(this);
     this.handleMouseDown = this.handleMouseDown.bind(this);
@@ -304,8 +305,15 @@ class Canvas extends Component {
     }
   }
 
-  downloadCanvas() {
+  save() {
     downloadCanvas(this.displayCanvas.current);
+  }
+
+  saveWithGrid() {
+    this.ctx.grid.drawImage(this.displayCanvas.current, 0, 0, SIZE, SIZE);
+    downloadCanvas(this.gridCanvas.current);
+    clearCanvas(this.gridCanvas.current);
+    this.drawGrid();
   }
 
   drawArt() {
@@ -440,7 +448,7 @@ class Canvas extends Component {
   drawGrid() {
     for (let i = 0; i < NUM_ROWS; i += 1) {
       for (let j = 0; j < NUM_ROWS; j += 1) {
-        this.drawCell(i, j, 'grid', gridColors[(i + j) % 2]);
+        this.drawCell(i, j, 'grid', tileColors[(i + j) % 2]);
       }
     }
   }
@@ -492,7 +500,8 @@ class Canvas extends Component {
         />
         <ControlPanel
           onReset={this.resetCanvas}
-          onSave={this.downloadCanvas}
+          onSave={this.save}
+          onSaveWithGrid={this.saveWithGrid}
         />
         <SummaryPanel />
       </Container>

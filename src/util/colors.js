@@ -135,7 +135,7 @@ export const perlerColors = [
 
 export const perlerHexStrings = perlerColors.map(color => color.hex);
 
-export const gridColors = [
+export const tileColors = [
   colors.white,
   colors.lightGray,
 ];

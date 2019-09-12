@@ -71,6 +71,12 @@ const Container = styled.div`
   width: ${CELL_SIZE * 12}px;
   left: 0;
 `;
+const GridIcon = styled(Icon)`
+  left: 0.8em;
+  position: absolute;
+  top: 0.6em;
+  z-index: 0;
+`;
 const Label = styled.p`
   color: ${colors.gray};
   font-size: 0.75em;
@@ -89,6 +95,7 @@ const ControlPanel = ({
   onGridTypeToggle,
   onReset,
   onSave,
+  onSaveWithGrid,
   onSwatchClick,
   onToolTypeToggle,
   redo,
@@ -121,30 +128,44 @@ const ControlPanel = ({
       <Label>History</Label>
       <ButtonGroup>
         <Button
-          label="Reset Canvas"
+          label="New"
           onClick={onReset}
         >
-          <Icon name="reset" />
+          <Icon name="new" />
         </Button>
         <Button
           disabled={!canUndo}
-          label="Undo Action"
+          label="Undo"
           onClick={undo}
         >
           <Icon name="back" />
         </Button>
         <Button
           disabled={!canRedo}
-          label="Redo Action"
+          label="Redo"
           onClick={redo}
         >
           <Icon name="forward" />
         </Button>
         <Button
-          label="Download Canvas"
+          label="Save"
           onClick={onSave}
         >
           <Icon name="save" />
+        </Button>
+        <Button
+          label="Save With Grid"
+          onClick={onSaveWithGrid}
+          style={{ position: 'relative' }}
+        >
+          <GridIcon
+            name={gridType.toLowerCase()}
+            size={8}
+          />
+          <Icon
+            name="save"
+            style={{ zIndex: 1 }}
+          />
         </Button>
       </ButtonGroup>
       <Label>Perler Colors</Label>
@@ -171,6 +192,7 @@ ControlPanel.propTypes = {
   }).isRequired,
   onReset: PropTypes.func.isRequired,
   onSave: PropTypes.func.isRequired,
+  onSaveWithGrid: PropTypes.func.isRequired,
 };
 
 const mapStateToProps = ({
