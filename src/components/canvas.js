@@ -30,6 +30,20 @@ import {
   TOOL_TYPES,
 } from '../util/constants';
 
+import bucket from '../cursors/bucket.svg';
+import eyedropper from '../cursors/eyedropper.svg';
+import move from '../cursors/move.svg';
+import pencil from '../cursors/pencil.svg';
+import rectangle from '../cursors/rectangle.svg';
+
+const toolTypeIcons = {
+  bucket: { url: bucket, x: 15, y: 15 },
+  eyedropper: { url: eyedropper, x: -8, y: 12 },
+  move: { url: move, x: 8, y: 8 },
+  pencil: { url: pencil, x: -8, y: 12 },
+  rectangle: { url: rectangle, x: 0, y: 0 },
+};
+
 const isGridLines = props => props.gridType === GRID_TYPES.lines;
 const dpi = window.devicePixelRatio;
 const canvasProps = {
@@ -141,11 +155,18 @@ class Canvas extends Component {
     const redoClicked = nextProps.historyIndex < historyIndex;
     const undoClicked = nextProps.historyIndex > historyIndex;
     const gridTypeChanged = nextProps.gridType !== gridType;
+    const toolTypeChanged = nextProps.toolType !== toolType;
 
     if (toolType !== TOOL_TYPES.eyedropper && nextProps.toolType === TOOL_TYPES.eyedropper) {
       this.lastToolType = toolType;
     }
-    if (gridTypeChanged || undoClicked || redoClicked || this.shouldCanvasUpdate) {
+
+    if (gridTypeChanged
+      || toolTypeChanged
+      || undoClicked
+      || redoClicked
+      || this.shouldCanvasUpdate
+    ) {
       return true;
     }
 
@@ -480,6 +501,7 @@ class Canvas extends Component {
   }
 
   render() {
+    const { url, x, y } = toolTypeIcons[this.props.toolType.toLowerCase()];
     return (
       <Container>
         <GridCanvas
@@ -497,6 +519,10 @@ class Canvas extends Component {
           onMouseOut={this.handleMouseOut}
           ref={this.eventCanvas}
           {...canvasProps}
+          style={{
+            cursor: `url(${url}) ${x} ${y}, default`,
+            ...canvasProps.style,
+          }}
         />
         <ControlPanel
           onReset={this.resetCanvas}

@@ -55,8 +55,14 @@ const ColorPalette = styled.div`
   display: flex;
   flex-flow: row wrap;
   margin: 1em 0 0 0em;
+  /* white swatch needs extra border for visibility */
   .swatchContainer:last-child .swatchIcon {
-    border: 0.01em solid ${colors.lightGray};
+    border: 1px solid ${colors.lightGray};
+    box-sizing: border-box;
+    &:before {
+      left: 1px;
+      top: 1px;
+    }
   }
 `;
 const Container = styled.div`
