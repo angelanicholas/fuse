@@ -285,7 +285,7 @@ class Canvas extends Component {
               this.props.bucketFill(
                 this.calcRowFromMouseY(ev.clientY),
                 this.calcColFromMouseX(ev.clientX),
-                this.props.color.hex,
+                this.isRightClick ? null : this.props.color.hex,
               );
               break;
             case TOOL_TYPES.move:
