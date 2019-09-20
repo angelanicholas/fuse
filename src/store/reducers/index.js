@@ -24,11 +24,16 @@ const initialCanvasState = newCanvas();
 function canvas(state = initialCanvasState, action) {
   switch (action.type) {
     case CLEAR_CANVAS:
-      return newCanvas();
+      const nextState = newCanvas();
+      sessionStorage.setItem('canvas', JSON.stringify(nextState));
+      return nextState;
     case FILL_PIXEL: {
-      const { row, col, fill } = action;
+      const { row, col, fill, shouldStoreInSession } = action;
       const nextState = cloneDeep(state);
       nextState[row][col] = fill;
+      if (shouldStoreInSession) {
+        sessionStorage.setItem('canvas', JSON.stringify(nextState));
+      }
       return nextState;
     }
     case FILL_RECTANGLE: {
@@ -39,12 +44,14 @@ function canvas(state = initialCanvasState, action) {
           nextState[row][col] = fill;
         }
       }
+      sessionStorage.setItem('canvas', JSON.stringify(nextState));
       return nextState;
     }
     case BUCKET_FILL: {
       const { row, col, fill } = action;
-      const nextState = cloneDeep(state);
-      return bucketFill(nextState, row, col, fill);
+      const nextState = bucketFill(cloneDeep(state), row, col, fill);
+      sessionStorage.setItem('canvas', JSON.stringify(nextState));
+      return nextState;
     }
     case SHIFT_CANVAS: {
       let { x, y } = action;
@@ -71,6 +78,7 @@ function canvas(state = initialCanvasState, action) {
         nextState.push(nextState.shift().map(() => null));
         y++;
       }
+      sessionStorage.setItem('canvas', JSON.stringify(nextState));
       return nextState;
     }
     default: {
@@ -83,6 +91,7 @@ const initialColorState = perlerColors[0];
 function color(state = initialColorState, action) {
   switch (action.type) {
     case CHANGE_COLOR:
+      sessionStorage.setItem('color', JSON.stringify(action.color));
       return action.color;
     default:
       return state;
@@ -93,6 +102,7 @@ const initialGridTypeState = GRID_TYPES.pegs;
 function gridType(state = initialGridTypeState, action) {
   switch (action.type) {
     case CHANGE_GRID_TYPE:
+      sessionStorage.setItem('gridType', action.gridType);
       return action.gridType;
     default:
       return state;
@@ -103,6 +113,7 @@ const initialToolTypeState = TOOL_TYPES.pencil;
 function toolType(state = initialToolTypeState, action) {
   switch (action.type) {
     case CHANGE_TOOL_TYPE:
+      sessionStorage.setItem('toolType', action.toolType);
       return action.toolType;
     default:
       return state;

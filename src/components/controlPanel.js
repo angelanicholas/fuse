@@ -9,9 +9,14 @@ import Button from './button';
 import ButtonToggle from './buttonToggle';
 import Icon from './icon';
 import Swatch from './swatch';
+import { getSessionItem } from '../util/canvas';
 import { colors, perlerColors } from '../util/colors';
-import { CELL_SIZE, GRID_TYPES, TOOL_TYPES } from '../util/constants';
 import { changeColor, changeGridType, changeToolType } from '../store/actions';
+import {
+  CELL_SIZE,
+  GRID_TYPES,
+  TOOL_TYPES,
+} from '../util/constants';
 
 const gridTypeOptions = Object.values(GRID_TYPES).map(type => ({
   iconName: type.toLowerCase(),
@@ -207,12 +212,13 @@ const mapStateToProps = ({
   gridType,
   toolType,
 }) => {
+  let sessionColor = getSessionItem('color');
   return {
     canRedo: canvas.future.length > 0,
     canUndo: canvas.past.length > 0,
-    color,
-    gridType,
-    toolType,
+    color: sessionColor ? JSON.parse(sessionColor) : color,
+    gridType: getSessionItem('gridType') || gridType,
+    toolType: getSessionItem('toolType') || toolType,
   };
 };
 const mapDispatchToProps = dispatch => {

@@ -9,7 +9,7 @@ import { ActionCreators as UndoActionCreators } from 'redux-undo';
 import ControlPanel from './controlPanel';
 import SummaryPanel from './summaryPanel';
 import { colors, perlerColors, tileColors } from '../util/colors';
-import { clearCanvas, downloadCanvas } from '../util/canvas';
+import { clearCanvas, downloadCanvas, getSessionItem } from '../util/canvas';
 import { batchGroupBy } from '../store/reducers';
 import {
   bucketFill,
@@ -184,7 +184,7 @@ class Canvas extends Component {
         this.changeColor(ev);
         break;
       case TOOL_TYPES.pencil:
-        this.fillPixel(ev);
+        this.fillPixel(ev, false);
         break;
       case TOOL_TYPES.rectangle:
         this.drawRectangle(ev);
@@ -261,37 +261,46 @@ class Canvas extends Component {
   }
 
   handleMouseUp(ev) {
+    const {
+      bucketFill,
+      changeToolType,
+      color,
+      gridType,
+      shiftCanvas,
+      toolType,
+    } = this.props;
+
     if (this.isCanvasEvent) {
       batchGroupBy.end();
-      switch (this.props.toolType) {
+      switch (toolType) {
         case TOOL_TYPES.eyedropper:
           this.changeColor(ev);
-          this.props.changeToolType(this.lastToolType);
+          changeToolType(this.lastToolType);
           this.lastToolType = null;
           break;
         default:
           this.eventCanvas.current.addEventListener('mousemove', this.handleMouseMove);
-          switch (this.props.toolType) {
+          switch (toolType) {
             case TOOL_TYPES.rectangle:
               this.drawRectangle(ev);
               this.startDragRow = null;
               this.startDragCol = null;
               break;
             case TOOL_TYPES.pencil:
-              this.fillPixel(ev);
+              this.fillPixel(ev, true);
               break;
             case TOOL_TYPES.bucket:
               this.shouldCanvasUpdate = true;
-              this.props.bucketFill(
+              bucketFill(
                 this.calcRowFromMouseY(ev.clientY),
                 this.calcColFromMouseX(ev.clientX),
-                this.isRightClick ? null : this.props.color.hex,
+                this.isRightClick ? null : color.hex,
               );
               break;
             case TOOL_TYPES.move:
-              this.gridCanvas.current.style.zIndex = this.props.gridType === GRID_TYPES.lines ? '1' : '0';
+              this.gridCanvas.current.style.zIndex = gridType === GRID_TYPES.lines ? '1' : '0';
               this.displayCanvas.current.style.zIndex = '0';
-              this.props.shiftCanvas(
+              shiftCanvas(
                 Math.min(this.calcColFromMouseX(ev.clientX) - this.startDragCol, NUM_ROWS),
                 Math.min(this.calcRowFromMouseY(ev.clientY) - this.startDragRow, NUM_ROWS),
               );
@@ -306,6 +315,7 @@ class Canvas extends Component {
           }
           break;
       }
+
       this.isRightClick = false;
       this.isCanvasEvent = false;
       document.removeEventListener('mousemove', this.handleDrag);
@@ -479,14 +489,14 @@ class Canvas extends Component {
     }
   }
 
-  fillPixel(ev) {
+  fillPixel(ev, shouldStoreInSession) {
     const { canvas, color } = this.props;
     const row = this.calcRowFromMouseY(ev.clientY);
     const col = this.calcColFromMouseX(ev.clientX);
     const fill = ev.buttons === 2 || ev.button === 2 ? null : color.hex;
     if (canvas[row][col] !== fill) {
       this.drawCell(row, col, 'display', fill);
-      this.props.fillPixel(row, col, fill);
+      this.props.fillPixel(row, col, fill, shouldStoreInSession);
     }
   }
 
@@ -542,14 +552,14 @@ class Canvas extends Component {
 }
 
 Canvas.propTypes = {
-  canvas: PropTypes.arrayOf(PropTypes.arrayOf(PropTypes.string)),
+  canvas: PropTypes.arrayOf(PropTypes.arrayOf(PropTypes.string)).isRequired,
   color: PropTypes.shape({
     hex: PropTypes.string.isRequired,
     name: PropTypes.string.isRequired,
-  }),
-  gridType: PropTypes.oneOf(Object.values(GRID_TYPES)),
+  }).isRequired,
+  gridType: PropTypes.oneOf(Object.values(GRID_TYPES)).isRequired,
   historyIndex: PropTypes.number,
-  toolType: PropTypes.oneOf(Object.values(TOOL_TYPES)),
+  toolType: PropTypes.oneOf(Object.values(TOOL_TYPES)).isRequired,
 };
 
 const mapStateToProps = ({
@@ -558,12 +568,13 @@ const mapStateToProps = ({
   gridType,
   toolType,
 }) => {
+  const sessionColor = getSessionItem('color');
   return {
     canvas: canvas.present,
-    color,
-    gridType,
+    color: sessionColor ? JSON.parse(sessionColor) : color,
+    gridType: getSessionItem('gridType') || gridType,
     historyIndex: canvas.limit - canvas.index,
-    toolType,
+    toolType: getSessionItem('toolType') || toolType,
   };
 };
 const mapDispatchToProps = dispatch => {
@@ -573,7 +584,7 @@ const mapDispatchToProps = dispatch => {
     changeToolType: toolType => dispatch(changeToolType(toolType)),
     clearCanvasData: () => dispatch(clearCanvasData()),
     clearHistory: () => dispatch(UndoActionCreators.clearHistory()),
-    fillPixel: (row, col, fill) => dispatch(fillPixel(row, col, fill)),
+    fillPixel: (row, col, fill, shouldStoreInSession) => dispatch(fillPixel(row, col, fill, shouldStoreInSession)),
     fillRectangle: (rowStart, rowEnd, colStart, colEnd, fill) => dispatch(
       fillRectangle(rowStart, rowEnd, colStart, colEnd, fill),
     ),

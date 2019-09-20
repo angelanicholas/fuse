@@ -1,9 +1,22 @@
+const STRING_TO_LITERAL = {
+  'NaN': NaN,
+  'null': null,
+  'undefined': undefined,
+  'Infinity': Infinity,
+  '-Infinity': -Infinity,
+};
+
 export function isCanvasBlank(canvas) {
   const ctx = canvas.getContext('2d');
   const pixelBuffer = new Uint32Array(
     ctx.getImageData(0, 0, canvas.width, canvas.height).data.buffer,
   );
   return !pixelBuffer.some(color => color !== 0);
+}
+
+export function getSessionItem(item) {
+  let sessionItem = sessionStorage.getItem(item);
+  return STRING_TO_LITERAL[sessionItem] || sessionItem;
 }
 
 function isColumnBlank(imageData, width, x, top, bottom) {
