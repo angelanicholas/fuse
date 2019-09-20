@@ -127,7 +127,7 @@ class Canvas extends Component {
     if (this.shouldClearHistory) {
       this.props.clearHistory();
     }
-    this.gridCanvas.current.style.zIndex = this.props.gridType === GRID_TYPES.lines ? '1' : '0';
+    this.gridCanvas.current.style.zIndex = this.props.gridType === GRID_TYPES.lined ? '1' : '0';
     clearCanvas(this.displayCanvas.current);
     clearCanvas(this.eventCanvas.current);
     clearCanvas(this.gridCanvas.current);
@@ -220,7 +220,7 @@ class Canvas extends Component {
         this.drawCell(this.lastEventRow, this.lastEventCol, 'event', null);
         this.startDragRow = this.calcRowFromMouseY(ev.clientY);
         this.startDragCol = this.calcColFromMouseX(ev.clientX);
-        this.gridCanvas.current.style.zIndex = this.props.gridType === GRID_TYPES.lines ? '3' : '0';
+        this.gridCanvas.current.style.zIndex = this.props.gridType === GRID_TYPES.lined ? '3' : '0';
         this.ctx.event.drawImage(this.displayCanvas.current, 0, 0, SIZE, SIZE);
         this.displayCanvas.current.style.zIndex = '-1';
         this.eventCanvas.current.removeEventListener('mousemove', this.handleMouseMove);
@@ -278,7 +278,7 @@ class Canvas extends Component {
               );
               break;
             case TOOL_TYPES.move:
-              this.gridCanvas.current.style.zIndex = gridType === GRID_TYPES.lines ? '1' : '0';
+              this.gridCanvas.current.style.zIndex = gridType === GRID_TYPES.lined ? '1' : '0';
               this.displayCanvas.current.style.zIndex = '0';
               shiftCanvas(
                 Math.min(this.calcColFromMouseX(ev.clientX) - this.startDragCol, NUM_ROWS),
@@ -428,7 +428,7 @@ class Canvas extends Component {
 
     if (canvasName === 'grid') {
       switch (gridType) {
-        case GRID_TYPES.lines:
+        case GRID_TYPES.lined:
           canvas.strokeStyle = colors.darkestGray;
           rectArgs[0] += BLURRY_LINE_SHIFT;
           rectArgs[1] += BLURRY_LINE_SHIFT;
@@ -496,11 +496,13 @@ class Canvas extends Component {
   }
 
   render() {
-    const { url, url2x, x, y } = toolTypeIcons[this.props.toolType.toLowerCase()];
+    const { gridType, showSummaryPanel, toolType } = this.props;
+    const { url, url2x, x, y } = cursors[toolType.toLowerCase()];
+
     return (
       <Container>
         <GridCanvas
-          gridType={this.props.gridType}
+          gridType={gridType}
           ref={this.gridCanvas}
           {...canvasProps}
         />

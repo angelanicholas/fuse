@@ -98,7 +98,7 @@ function color(state = initialColorState, action) {
   }
 };
 
-const initialGridTypeState = GRID_TYPES.pegs;
+const initialGridTypeState = GRID_TYPES.tiled;
 function gridType(state = initialGridTypeState, action) {
   switch (action.type) {
     case CHANGE_GRID_TYPE:
