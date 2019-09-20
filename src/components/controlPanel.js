@@ -101,6 +101,8 @@ const ControlPanel = ({
   onSwatchClick,
   onToolTypeToggle,
   redo,
+  showBeadInfo,
+  showSaveWithGrid,
   toolType,
   undo,
 }) => {
@@ -108,13 +110,15 @@ const ControlPanel = ({
   const beadColor = hoveredColor || color;
   return (
     <Container>
-      <ColorInfo>
-        <Bead color={beadColor.hex} />
-        <ColorInfoTextWrapper>
-          <ColorInfoText>{beadColor.name}</ColorInfoText>
-          <ColorInfoText>{beadColor.code}</ColorInfoText>
-        </ColorInfoTextWrapper>
-      </ColorInfo>
+      {showBeadInfo && (
+        <ColorInfo>
+          <Bead color={beadColor.hex} />
+          <ColorInfoTextWrapper>
+            <ColorInfoText>{beadColor.name}</ColorInfoText>
+            <ColorInfoText>{beadColor.code}</ColorInfoText>
+          </ColorInfoTextWrapper>
+        </ColorInfo>
+      )}
       <Label>Grid Style</Label>
       <ButtonToggle
         onClick={onGridTypeToggle}
@@ -155,22 +159,24 @@ const ControlPanel = ({
         >
           <Icon name="save" />
         </Button>
-        <Button
-          label="Save With Grid"
-          onClick={onSaveWithGrid}
-          style={{ position: 'relative' }}
-        >
-          <GridIcon
-            name={gridType.toLowerCase()}
-            size={8}
-          />
-          <Icon
-            name="save"
-            style={{ zIndex: 1 }}
-          />
-        </Button>
+        {showSaveWithGrid && (
+          <Button
+            label="Save With Grid"
+            onClick={onSaveWithGrid}
+            style={{ position: 'relative' }}
+          >
+            <GridIcon
+              name={gridType.toLowerCase()}
+              size={8}
+            />
+            <Icon
+              name="save"
+              style={{ zIndex: 1 }}
+            />
+          </Button>
+        )}
       </ButtonGroup>
-      <Label>Perler Colors</Label>
+      <Label>Colors</Label>
       <ColorPalette>
         {perlerColors.map(perlerColor => (
           <Swatch
@@ -195,6 +201,12 @@ ControlPanel.propTypes = {
   onReset: PropTypes.func.isRequired,
   onSave: PropTypes.func.isRequired,
   onSaveWithGrid: PropTypes.func.isRequired,
+  showBeadInfo: PropTypes.bool,
+  showSaveWithGrid: PropTypes.bool,
+};
+ControlPanel.defaultProps = {
+  showBeadInfo: false,
+  showSaveWithGrid: false,
 };
 
 const mapStateToProps = ({

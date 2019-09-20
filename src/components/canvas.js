@@ -527,7 +527,7 @@ class Canvas extends Component {
           onSave={this.save}
           onSaveWithGrid={this.saveWithGrid}
         />
-        <SummaryPanel />
+        {showSummaryPanel && <SummaryPanel />}
       </Container>
     );
   }
@@ -541,7 +541,11 @@ Canvas.propTypes = {
   }).isRequired,
   gridType: PropTypes.oneOf(Object.values(GRID_TYPES)).isRequired,
   historyIndex: PropTypes.number,
+  showSummaryPanel: PropTypes.bool,
   toolType: PropTypes.oneOf(Object.values(TOOL_TYPES)).isRequired,
+};
+Canvas.defaultProps = {
+  showSummaryPanel: false,
 };
 
 const mapStateToProps = ({
