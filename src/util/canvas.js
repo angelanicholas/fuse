@@ -1,3 +1,15 @@
+import bucket from '../cursors/bucket.svg';
+import eyedropper from '../cursors/eyedropper.svg';
+import move from '../cursors/move.svg';
+import pencil from '../cursors/pencil.svg';
+import rectangle from '../cursors/rectangle.svg';
+import bucket2x from '../cursors/bucket2x.svg';
+import eyedropper2x from '../cursors/eyedropper2x.svg';
+import move2x from '../cursors/move2x.svg';
+import pencil2x from '../cursors/pencil2x.svg';
+import rectangle2x from '../cursors/rectangle2x.svg';
+const dpi = window.devicePixelRatio;
+
 const STRING_TO_LITERAL = {
   'NaN': NaN,
   'null': null,
@@ -118,3 +130,36 @@ export const canvasQuotes = [{
   text: 'I put on the canvas whatever comes into my mind.',
   author: 'Frida Kahlo',
 }];
+
+export const cursors = {
+  bucket: {
+    url: bucket,
+    url2x: bucket2x,
+    x: 20 * dpi,
+    y: 20 * dpi,
+  },
+  eyedropper: {
+    url: eyedropper,
+    url2x: eyedropper2x,
+    x: -8 * dpi,
+    y: 12 * dpi,
+  },
+  move: {
+    url: move,
+    url2x: move2x,
+    x: 3 * dpi,
+    y: 3 * dpi,
+  },
+  pencil: {
+    url: pencil,
+    url2x: pencil2x,
+    x: -8 * dpi,
+    y: 12 * dpi,
+  },
+  rectangle: {
+    url: rectangle,
+    url2x: rectangle2x,
+    x: 0,
+    y: 0,
+  },
+};
