@@ -76,7 +76,7 @@ ButtonToggle.propTypes = {
   value: PropTypes.string.isRequired,
 };
 ButtonToggle.defaultProps = {
-  color: colors.white,
+  color: 'transparent',
   textColor: colors.gray,
 };
 

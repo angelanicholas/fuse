@@ -21,7 +21,7 @@ const Container = styled.button`
   letter-spacing: 0.1em;
   outline: none;
   overflow: hidden;
-  padding: 1em;
+  padding: 0.75em;
   text-transform: uppercase;
   transition: color 0.5s ease;
   user-select: none;
@@ -55,7 +55,7 @@ Button.propTypes = {
   type: PropTypes.oneOf(['button', 'submit', 'reset']),
 };
 Button.defaultProps = {
-  color: colors.white,
+  color: 'transparent',
   style: {},
   textColor: colors.gray,
   type: 'button',

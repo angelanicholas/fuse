@@ -59,27 +59,18 @@ const ColorInfoText = styled.p`
 const ColorPalette = styled.div`
   display: flex;
   flex-flow: row wrap;
-  margin: 1em 0 0 0em;
-  /* white swatch needs extra border for visibility */
-  .swatchContainer:last-child .swatchIcon {
-    border: 1px solid ${colors.lightGray};
-    box-sizing: border-box;
-    &:before {
-      left: 1px;
-      top: 1px;
-    }
-  }
+  margin: 0.5em 0 0 0em;
 `;
 const Container = styled.div`
-  background-color: ${colors.white};
+  background-color: ${colors.lightestGray};
   bottom: 0;
   box-shadow: 0 0 0.25em ${colors.mediumLightGray};
   display: flex;
   flex-flow: column nowrap;
-  padding: 1em 1.5em;
+  padding: 0.5em 1.5em;
   position: absolute;
   top: 0;
-  width: ${CELL_SIZE * 12}px;
+  width: ${CELL_SIZE * 11}px;
   left: 0;
 `;
 const GridIcon = styled(Icon)`
@@ -93,7 +84,7 @@ const Label = styled.p`
   font-size: 0.75em;
   font-weight: 500;
   letter-spacing: 0.04em;
-  margin: 1.5em 0.5em 0.5em;
+  margin: 2em 0.5em 0.5em;
   text-transform: uppercase;
   user-select: none;
 `;

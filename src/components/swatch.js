@@ -6,19 +6,19 @@ import { colors } from '../util/colors';
 // styled components
 const Container = styled.div`
   cursor: pointer;
-  padding: 0.25em;
+  padding: 2px;
 `;
 const Icon = styled.div`
   background-color: ${p => p.hex};
-  border-radius: ${p => p.size / 2}px;
+  border-radius: ${p => p.isRound ? p.size / 2 : 0}px;
   height: ${p => p.size}px;
   position: relative;
   width: ${p => p.size}px;
   &:before {
     content: '';
     background-color: transparent;
-    border: ${p => `${p.borderWidth}px solid ${p.isSelected ? colors.white : 'transparent'}`};
-    border-radius: ${p => (p.size - p.borderWidth) / 2}px;
+    border: ${p => `${p.borderWidth}px solid ${p.isSelected ? colors.lightestGray : 'transparent'}`};
+    border-radius: ${p => p.isRound ? (p.size - p.borderWidth) / 2 : 0}px;
     box-sizing: border-box;
     position: absolute;
     top: ${p => p.borderWidth}px;
@@ -42,7 +42,7 @@ const Swatch = ({
   >
     <Icon
       className="swatchIcon"
-      borderWidth={Math.floor(size / 10)}
+      borderWidth={2}
       hex={color.hex}
       isSelected={isSelected}
       size={size}
@@ -57,12 +57,14 @@ Swatch.propTypes = {
     name: PropTypes.string.isRequired,
   }).isRequired,
   isSelected: PropTypes.bool.isRequired,
+  isRound: PropTypes.bool,
   size: PropTypes.number,
   onClick: PropTypes.func.isRequired,
 };
 
 Swatch.defaultProps = {
-  size: 20,
+  isRound: false,
+  size: 18,
 };
 
 export default Swatch;
