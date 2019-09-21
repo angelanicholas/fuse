@@ -22,7 +22,7 @@ export const colors = {
   white: '#FFFFFF',
 };
 
-export const perlerColors = [
+export const paletteColors = [
   { name: 'Light Pink', hex: '#F5C0D5', code: 'P79' },
   { name: 'Bubble Gum', hex: '#E16D9D', code: 'P06' },
   { name: 'Pink', hex: '#E65794', code: 'P83' },
@@ -133,9 +133,9 @@ export const perlerColors = [
   // { name: 'Color Change Black', hex: '#494D4D' },
 ];
 
-export const perlerHexStrings = perlerColors.map(color => color.hex);
+export const paletteHexStrings = paletteColors.map(color => color.hex);
 
 export const tileColors = [
-  colors.white,
+  colors.lightestGray,
   colors.lightGray,
 ];

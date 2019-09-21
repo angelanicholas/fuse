@@ -53,12 +53,10 @@ const ButtonToggle = ({
         textColor={textColor}
         value={option.value}
       >
-        {option.iconName ? (
-          <Icon
-            name={option.iconName}
-            color={value === option.value ? colors.darkestGray : 'currentColor'}
-          />
-        ) : option.label || option.value}
+        <Icon
+          name={option.value}
+          color={value === option.value ? colors.darkestGray : 'currentColor'}
+        />
       </Button>
     ))}
   </Container>
@@ -77,7 +75,7 @@ ButtonToggle.propTypes = {
 };
 ButtonToggle.defaultProps = {
   color: 'transparent',
-  textColor: colors.gray,
+  textColor: colors.darkGray,
 };
 
 export default ButtonToggle;

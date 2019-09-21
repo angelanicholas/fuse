@@ -1,8 +1,8 @@
 import { combineReducers } from 'redux';
 import undoable, { excludeAction, groupByActionTypes } from 'redux-undo';
-import { GRID_TYPES, NUM_ROWS, TOOL_TYPES } from '../../util/constants';
+import { GRID_TYPES, NUM_COLS, NUM_ROWS, TOOL_TYPES } from '../../util/constants';
 import { bucketFill } from '../../util/canvas';
-import { perlerColors } from '../../util/colors';
+import { paletteColors } from '../../util/colors';
 import cloneDeep from 'lodash/cloneDeep';
 import cuid from 'cuid';
 import {
@@ -17,7 +17,7 @@ import {
 } from '../actions';
 
 function newCanvas() {
-  return new Array(NUM_ROWS).fill(0).map(() => new Array(NUM_ROWS).fill(null));
+  return new Array(NUM_ROWS).fill(0).map(() => new Array(NUM_COLS).fill(null));
 }
 
 const initialCanvasState = newCanvas();
@@ -28,12 +28,9 @@ function canvas(state = initialCanvasState, action) {
       sessionStorage.setItem('canvas', JSON.stringify(nextState));
       return nextState;
     case FILL_PIXEL: {
-      const { row, col, fill, shouldStoreInSession } = action;
+      const { row, col, fill } = action;
       const nextState = cloneDeep(state);
       nextState[row][col] = fill;
-      if (shouldStoreInSession) {
-        sessionStorage.setItem('canvas', JSON.stringify(nextState));
-      }
       return nextState;
     }
     case FILL_RECTANGLE: {
@@ -87,7 +84,7 @@ function canvas(state = initialCanvasState, action) {
   }
 };
 
-const initialColorState = perlerColors[0];
+const initialColorState = paletteColors[0];
 function color(state = initialColorState, action) {
   switch (action.type) {
     case CHANGE_COLOR:

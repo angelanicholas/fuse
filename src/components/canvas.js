@@ -7,7 +7,7 @@ import throttle from 'lodash/throttle';
 import { ActionCreators as UndoActionCreators } from 'redux-undo';
 import ControlPanel from './controlPanel';
 import SummaryPanel from './summaryPanel';
-import { colors, perlerColors, tileColors } from '../util/colors';
+import { colors, paletteColors, tileColors } from '../util/colors';
 import { clearCanvas, cursors, downloadCanvas, getSessionItem } from '../util/canvas';
 import { batchGroupBy } from '../store/reducers';
 import {
@@ -23,31 +23,29 @@ import {
   BLURRY_LINE_SHIFT,
   CELL_SIZE,
   GRID_TYPES,
+  HEIGHT,
   NUM_ROWS,
+  NUM_COLS,
   PEG_SHIFT,
-  SIZE,
   TOOL_TYPES,
+  WIDTH,
 } from '../util/constants';
 
-const isGridLines = props => props.gridType === GRID_TYPES.lined;
 const dpi = window.devicePixelRatio;
 const canvasProps = {
-  height: SIZE * dpi,
-  style: { height: SIZE, width: SIZE },
-  width: SIZE * dpi,
+  height: HEIGHT * dpi,
+  style: { height: HEIGHT, width: WIDTH },
+  width: WIDTH * dpi,
 };
 
 // styled components
 const gridLineStyles = css`
-  border-left: 0.5px solid ${colors.darkGray};
-  border-top: 0.5px solid ${colors.darkGray};
+  border-left: 0.5px solid ${colors.gray};
 `;
 const Container = styled.div`
-  align-items: center;
   display: flex;
+  flex-flow: row nowrap;
   height: 100%;
-  justify-content: center;
-  position: relative;
   width: 100%;
 `;
 const DisplayCanvas = styled.canvas`
@@ -59,20 +57,18 @@ const EventCanvas = styled.canvas`
   z-index: 2;
 `;
 const GridCanvas = styled.canvas`
-  ${props => (isGridLines(props) ? gridLineStyles : '')}
+  ${props => (props.gridType === GRID_TYPES.lined ? gridLineStyles : '')}
   pointer-events: none;
   position: absolute;
-  z-index: ${props => (isGridLines(props) ? 1 : 0)};
+  z-index: ${props => (props.gridType === GRID_TYPES.lined ? 1 : 0)};
 `;
 
 class Canvas extends Component {
   constructor() {
     super();
-
     this.displayCanvas = createRef();
     this.eventCanvas = createRef();
     this.gridCanvas = createRef();
-
     this.isRightClick = false;
     this.lastEventRow = null;
     this.lastEventCol = null;
@@ -82,15 +78,15 @@ class Canvas extends Component {
     this.startDragRow = null;
     this.startDragCol = null;
 
-    this.save = this.save.bind(this);
-    this.saveWithGrid = this.saveWithGrid.bind(this);
+    this.clearCanvas = this.clearCanvas.bind(this);
     this.handleDrag = throttle(this.handleDrag.bind(this), 5);
     this.handleKeyDown = this.handleKeyDown.bind(this);
     this.handleMouseDown = this.handleMouseDown.bind(this);
     this.handleMouseMove = this.handleMouseMove.bind(this);
     this.handleMouseOut = this.handleMouseOut.bind(this);
     this.handleMouseUp = this.handleMouseUp.bind(this);
-    this.resetCanvas = this.resetCanvas.bind(this);
+    this.save = this.save.bind(this);
+    this.saveWithGrid = this.saveWithGrid.bind(this);
   }
 
   componentDidMount() {
@@ -107,7 +103,9 @@ class Canvas extends Component {
     this.ctx.event.scale(dpi, dpi);
     this.ctx.grid.scale(dpi, dpi);
 
-    this.drawGrid();
+    if (this.props.gridType !== GRID_TYPES.noGrid) {
+      this.drawGrid();
+    }
 
     document.addEventListener('keydown', this.handleKeyDown);
     document.addEventListener('mouseup', this.handleMouseUp);
@@ -127,11 +125,15 @@ class Canvas extends Component {
     if (this.shouldClearHistory) {
       this.props.clearHistory();
     }
+
     this.gridCanvas.current.style.zIndex = this.props.gridType === GRID_TYPES.lined ? '1' : '0';
     clearCanvas(this.displayCanvas.current);
     clearCanvas(this.eventCanvas.current);
     clearCanvas(this.gridCanvas.current);
-    this.drawGrid();
+
+    if (this.props.gridType !== GRID_TYPES.noGrid) {
+      this.drawGrid();
+    }
     this.drawArt();
   }
 
@@ -221,14 +223,13 @@ class Canvas extends Component {
         this.startDragRow = this.calcRowFromMouseY(ev.clientY);
         this.startDragCol = this.calcColFromMouseX(ev.clientX);
         this.gridCanvas.current.style.zIndex = this.props.gridType === GRID_TYPES.lined ? '3' : '0';
-        this.ctx.event.drawImage(this.displayCanvas.current, 0, 0, SIZE, SIZE);
+        this.ctx.event.drawImage(this.displayCanvas.current, 0, 0, WIDTH, HEIGHT);
         this.displayCanvas.current.style.zIndex = '-1';
         this.eventCanvas.current.removeEventListener('mousemove', this.handleMouseMove);
         break;
       default:
         break;
     }
-
     this.isCanvasEvent = true;
     this.isRightClick = ev.buttons === 2;
     document.addEventListener('mousemove', this.handleDrag);
@@ -281,13 +282,13 @@ class Canvas extends Component {
               this.gridCanvas.current.style.zIndex = gridType === GRID_TYPES.lined ? '1' : '0';
               this.displayCanvas.current.style.zIndex = '0';
               shiftCanvas(
-                Math.min(this.calcColFromMouseX(ev.clientX) - this.startDragCol, NUM_ROWS),
+                Math.min(this.calcColFromMouseX(ev.clientX) - this.startDragCol, NUM_COLS),
                 Math.min(this.calcRowFromMouseY(ev.clientY) - this.startDragRow, NUM_ROWS),
               );
               this.startDragRow = null;
               this.startDragCol = null;
               clearCanvas(this.displayCanvas.current);
-              this.ctx.display.drawImage(this.eventCanvas.current, 0, 0, SIZE, SIZE);
+              this.ctx.display.drawImage(this.eventCanvas.current, 0, 0, WIDTH, HEIGHT);
               clearCanvas(this.eventCanvas.current);
               break;
             default:
@@ -295,7 +296,6 @@ class Canvas extends Component {
           }
           break;
       }
-
       this.isRightClick = false;
       this.isCanvasEvent = false;
       document.removeEventListener('mousemove', this.handleDrag);
@@ -309,7 +309,7 @@ class Canvas extends Component {
 
   calcColFromMouseX(x) {
     const colIndex = Math.floor((x + this.scrollContainer.scrollLeft - this.gridCanvas.current.offsetLeft) / CELL_SIZE);
-    return Math.min(Math.max(colIndex, 0), NUM_ROWS - 1);
+    return Math.min(Math.max(colIndex, 0), NUM_COLS - 1);
   }
 
   changeColor(ev) {
@@ -317,24 +317,19 @@ class Canvas extends Component {
     const col = this.calcColFromMouseX(ev.clientX);
     const clickedColor = this.props.canvas[row][col];
     if (clickedColor) {
-      this.props.changeColor(perlerColors.find(color => color.hex === clickedColor));
+      this.props.changeColor(paletteColors.find(color => color.hex === clickedColor));
     }
   }
 
-  save() {
-    downloadCanvas(this.displayCanvas.current);
-  }
-
-  saveWithGrid() {
-    this.ctx.grid.drawImage(this.displayCanvas.current, 0, 0, SIZE, SIZE);
-    downloadCanvas(this.gridCanvas.current);
-    clearCanvas(this.gridCanvas.current);
-    this.drawGrid();
+  clearCanvas() {
+    this.shouldCanvasUpdate = true;
+    this.shouldClearHistory = true;
+    this.props.clearCanvasData();
   }
 
   drawArt() {
     for (let i = 0; i < NUM_ROWS; i += 1) {
-      for (let j = 0; j < NUM_ROWS; j += 1) {
+      for (let j = 0; j < NUM_COLS; j += 1) {
         this.drawCell(i, j, 'display', this.props.canvas[i][j]);
       }
     }
@@ -345,7 +340,7 @@ class Canvas extends Component {
     const canvasName = isDragging ? 'event' : 'display';
     const canvas = this.ctx[canvasName];
     const isPegs = this.props.gridType === GRID_TYPES.pegs;
-    let col = Math.min(Math.max(0, this.calcColFromMouseX(ev.clientX)), NUM_ROWS - 1);
+    let col = Math.min(Math.max(0, this.calcColFromMouseX(ev.clientX)), NUM_COLS - 1);
     let row = Math.min(Math.max(0, this.calcRowFromMouseY(ev.clientY)), NUM_ROWS - 1);
     let { startDragCol, startDragRow } = this;
     let height = col - startDragCol;
@@ -429,7 +424,7 @@ class Canvas extends Component {
     if (canvasName === 'grid') {
       switch (gridType) {
         case GRID_TYPES.lined:
-          canvas.strokeStyle = colors.darkestGray;
+          canvas.strokeStyle = colors.darkGray;
           rectArgs[0] += BLURRY_LINE_SHIFT;
           rectArgs[1] += BLURRY_LINE_SHIFT;
           canvas.strokeRect(...rectArgs);
@@ -463,36 +458,45 @@ class Canvas extends Component {
 
   drawGrid() {
     for (let i = 0; i < NUM_ROWS; i += 1) {
-      for (let j = 0; j < NUM_ROWS; j += 1) {
+      for (let j = 0; j < NUM_COLS; j += 1) {
         this.drawCell(i, j, 'grid', tileColors[(i + j) % 2]);
       }
     }
   }
 
-  fillPixel(ev, shouldStoreInSession) {
+  fillPixel(ev) {
     const { canvas, color } = this.props;
     const row = this.calcRowFromMouseY(ev.clientY);
     const col = this.calcColFromMouseX(ev.clientX);
     const fill = ev.buttons === 2 || ev.button === 2 ? null : color.hex;
     if (canvas[row][col] !== fill) {
       this.drawCell(row, col, 'display', fill);
-      this.props.fillPixel(row, col, fill, shouldStoreInSession);
+      this.props.fillPixel(row, col, fill);
     }
   }
 
-  resetCanvas() {
-    this.shouldCanvasUpdate = true;
-    this.shouldClearHistory = true;
-    this.props.clearCanvasData();
+  save() {
+    downloadCanvas(this.displayCanvas.current);
+  }
+
+  saveWithGrid() {
+    if (this.props.gridType !== GRID_TYPES.noGrid) {
+      this.ctx.grid.drawImage(this.displayCanvas.current, 0, 0, WIDTH, HEIGHT);
+      downloadCanvas(this.gridCanvas.current);
+      clearCanvas(this.gridCanvas.current);
+      this.drawGrid();
+    } else {
+      this.save();
+    }
   }
 
   shiftCanvas(ev) {
     const row = this.calcRowFromMouseY(ev.clientY);
     const col = this.calcColFromMouseX(ev.clientX);
-    const x = Math.min(col - this.startDragCol, NUM_ROWS) * CELL_SIZE;
+    const x = Math.min(col - this.startDragCol, NUM_COLS) * CELL_SIZE;
     const y = Math.min(row - this.startDragRow, NUM_ROWS) * CELL_SIZE;
     clearCanvas(this.eventCanvas.current);
-    this.ctx.event.drawImage(this.displayCanvas.current, x, y, SIZE, SIZE);
+    this.ctx.event.drawImage(this.displayCanvas.current, x, y, WIDTH, HEIGHT);
   }
 
   render() {
@@ -501,32 +505,34 @@ class Canvas extends Component {
 
     return (
       <Container>
-        <GridCanvas
-          gridType={gridType}
-          ref={this.gridCanvas}
-          {...canvasProps}
-        />
-        <DisplayCanvas
-          ref={this.displayCanvas}
-          {...canvasProps}
-        />
-        <EventCanvas
-          onBlur={this.handleMouseOut}
-          onMouseDown={this.handleMouseDown}
-          onMouseOut={this.handleMouseOut}
-          ref={this.eventCanvas}
-          {...canvasProps}
-          style={{
-            cursor: `url(${url}) ${x} ${y}, default`, // eslint-disable-next-line
-            cursor: `-webkit-image-set(url(${url}) 1x, url(${url2x}) 2x) ${x} ${y}, default`,
-            ...canvasProps.style,
-          }}
-        />
         <ControlPanel
-          onReset={this.resetCanvas}
+          onReset={this.clearCanvas}
           onSave={this.save}
           onSaveWithGrid={this.saveWithGrid}
         />
+        <Container>
+          <GridCanvas
+            gridType={gridType}
+            ref={this.gridCanvas}
+            {...canvasProps}
+          />
+          <DisplayCanvas
+            ref={this.displayCanvas}
+            {...canvasProps}
+          />
+          <EventCanvas
+            onBlur={this.handleMouseOut}
+            onMouseDown={this.handleMouseDown}
+            onMouseOut={this.handleMouseOut}
+            ref={this.eventCanvas}
+            {...canvasProps}
+            style={{
+              cursor: `url(${url}) ${x} ${y}, default`, // eslint-disable-next-line
+              cursor: `-webkit-image-set(url(${url}) 1x, url(${url2x}) 2x) ${x} ${y}, default`,
+              ...canvasProps.style,
+            }}
+          />
+        </Container>
         {showSummaryPanel && <SummaryPanel />}
       </Container>
     );
@@ -544,6 +550,7 @@ Canvas.propTypes = {
   showSummaryPanel: PropTypes.bool,
   toolType: PropTypes.oneOf(Object.values(TOOL_TYPES)).isRequired,
 };
+
 Canvas.defaultProps = {
   showSummaryPanel: false,
 };
@@ -563,6 +570,7 @@ const mapStateToProps = ({
     toolType: getSessionItem('toolType') || toolType,
   };
 };
+
 const mapDispatchToProps = dispatch => {
   return {
     bucketFill: (row, col, fill) => dispatch(bucketFill(row, col, fill)),
@@ -570,7 +578,7 @@ const mapDispatchToProps = dispatch => {
     changeToolType: toolType => dispatch(changeToolType(toolType)),
     clearCanvasData: () => dispatch(clearCanvasData()),
     clearHistory: () => dispatch(UndoActionCreators.clearHistory()),
-    fillPixel: (row, col, fill, shouldStoreInSession) => dispatch(fillPixel(row, col, fill, shouldStoreInSession)),
+    fillPixel: (row, col, fill) => dispatch(fillPixel(row, col, fill)),
     fillRectangle: (rowStart, rowEnd, colStart, colEnd, fill) => dispatch(
       fillRectangle(rowStart, rowEnd, colStart, colEnd, fill),
     ),

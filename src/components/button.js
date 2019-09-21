@@ -30,7 +30,7 @@ const Container = styled.button`
     color: ${colors.darkestGray};
   }
   &:disabled {
-    color: ${colors.lightGray};
+    color: ${colors.mediumLightGray};
     pointer-events: none;
   }
 `;
@@ -57,7 +57,7 @@ Button.propTypes = {
 Button.defaultProps = {
   color: 'transparent',
   style: {},
-  textColor: colors.gray,
+  textColor: colors.darkGray,
   type: 'button',
 };
 

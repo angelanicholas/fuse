@@ -5,7 +5,7 @@ import { colors } from './util/colors';
 import './App.css';
 
 const Container = styled.div`
-  background-color: ${colors.lightGray};
+  background-color: ${colors.lightestGray};
   height: 100vh;
   overflow: hidden;
   pointer-events: all;

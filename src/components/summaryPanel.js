@@ -6,7 +6,7 @@ import isEmpty from 'lodash/isEmpty';
 import orderBy from 'lodash/orderBy';
 import Bead from './bead';
 import { changeColor } from '../store/actions';
-import { colors, perlerColors, perlerHexStrings } from '../util/colors';
+import { colors, paletteColors, paletteHexStrings } from '../util/colors';
 import { CELL_SIZE } from '../util/constants';
 import { canvasQuotes } from '../util/canvas';
 
@@ -69,7 +69,7 @@ function getUsedColors(canvas) {
       } else {
         usedColors[beadColor] = {
           color: beadColor,
-          name: perlerColors.find(perlerColor => perlerColor.hex === beadColor).name,
+          name: paletteColors.find(paletteColor => paletteColor.hex === beadColor).name,
           quantity: 1,
         };
       }
@@ -93,7 +93,7 @@ const SummaryPanel = ({ canvas, handleBeadSummaryClick, usedColors }) => {
       ) : Object.values(sortedCanvasColors).map(({ color, name, quantity }) => (
         <BeadSummary
           key={`beadSummary-${color}`}
-          onClick={() => handleBeadSummaryClick(perlerColors.find(perlerColor => perlerColor.hex === color))}
+          onClick={() => handleBeadSummaryClick(paletteColors.find(paletteColor => paletteColor.hex === color))}
         >
           <Bead color={color} size={1.5} />
           <TextWrapper>
@@ -108,7 +108,7 @@ const SummaryPanel = ({ canvas, handleBeadSummaryClick, usedColors }) => {
 
 SummaryPanel.propTypes = {
   usedColors: PropTypes.shape({
-    [PropTypes.oneOf(perlerHexStrings)]: PropTypes.shape({
+    [PropTypes.oneOf(paletteHexStrings)]: PropTypes.shape({
       color: PropTypes.string.isRequired,
       name: PropTypes.string.isRequired,
       quantity: PropTypes.number.isRequired,

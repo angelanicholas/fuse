@@ -10,7 +10,7 @@ import ButtonToggle from './buttonToggle';
 import Icon from './icon';
 import Swatch from './swatch';
 import { getSessionItem } from '../util/canvas';
-import { colors, perlerColors } from '../util/colors';
+import { colors, paletteColors } from '../util/colors';
 import { changeColor, changeGridType, changeToolType } from '../store/actions';
 import {
   CELL_SIZE,
@@ -18,12 +18,12 @@ import {
   TOOL_TYPES,
 } from '../util/constants';
 
-const gridTypeOptions = Object.values(GRID_TYPES).map(type => ({
-  iconName: type.toLowerCase(),
+const gridTypeOptions = Object.keys(GRID_TYPES).map(type => ({
+  label: GRID_TYPES[type],
   value: type,
 }));
-const toolTypeOptions = Object.values(TOOL_TYPES).map(type => ({
-  iconName: type.toLowerCase(),
+const toolTypeOptions = Object.keys(TOOL_TYPES).map(type => ({
+  label: TOOL_TYPES[type],
   value: type,
 }));
 
@@ -62,16 +62,13 @@ const ColorPalette = styled.div`
   margin: 0.5em 0 0 0em;
 `;
 const Container = styled.div`
-  background-color: ${colors.lightestGray};
-  bottom: 0;
-  box-shadow: 0 0 0.25em ${colors.mediumLightGray};
+  background-color: ${colors.lightGray};
   display: flex;
   flex-flow: column nowrap;
-  padding: 0.5em 1.5em;
-  position: absolute;
-  top: 0;
+  padding: 0.25em 1.25em;
+  height: 100%;
   width: ${CELL_SIZE * 11}px;
-  left: 0;
+  z-index: 3;
 `;
 const GridIcon = styled(Icon)`
   left: 0.8em;
@@ -80,7 +77,7 @@ const GridIcon = styled(Icon)`
   z-index: 0;
 `;
 const Label = styled.p`
-  color: ${colors.gray};
+  color: ${colors.darkGray};
   font-size: 0.75em;
   font-weight: 500;
   letter-spacing: 0.04em;
@@ -119,17 +116,17 @@ const ControlPanel = ({
           </ColorInfoTextWrapper>
         </ColorInfo>
       )}
-      <Label>Grid Style</Label>
-      <ButtonToggle
-        onClick={onGridTypeToggle}
-        options={gridTypeOptions}
-        value={gridType}
-      />
       <Label>Tool</Label>
       <ButtonToggle
         onClick={onToolTypeToggle}
         options={toolTypeOptions}
         value={toolType}
+      />
+      <Label>Grid Style</Label>
+      <ButtonToggle
+        onClick={onGridTypeToggle}
+        options={gridTypeOptions}
+        value={gridType}
       />
       <Label>History</Label>
       <ButtonGroup>
@@ -178,13 +175,13 @@ const ControlPanel = ({
       </ButtonGroup>
       <Label>Colors</Label>
       <ColorPalette>
-        {perlerColors.map(perlerColor => (
+        {paletteColors.map(paletteColor => (
           <Swatch
-            color={perlerColor}
-            isSelected={perlerColor.hex === color.hex}
-            key={`Swatch-${perlerColor.hex}`}
+            color={paletteColor}
+            isSelected={paletteColor.hex === color.hex}
+            key={`Swatch-${paletteColor.hex}`}
             onClick={onSwatchClick}
-            onMouseOver={() => setHoveredColor(perlerColor)}
+            onMouseOver={() => setHoveredColor(paletteColor)}
             onMouseOut={() => setHoveredColor(null)}
           />
         ))}
@@ -226,8 +223,8 @@ const mapStateToProps = ({
 };
 const mapDispatchToProps = dispatch => {
   return {
-    onGridTypeToggle: (ev, toggleOption) => dispatch(changeGridType(toggleOption.value)),
-    onToolTypeToggle: (ev, toggleOption) => dispatch(changeToolType(toggleOption.value)),
+    onGridTypeToggle: (ev, toggleOption) => dispatch(changeGridType(toggleOption.label)),
+    onToolTypeToggle: (ev, toggleOption) => dispatch(changeToolType(toggleOption.label)),
     onSwatchClick: (color) => dispatch(changeColor(color)),
     redo: () => dispatch(UndoActionCreators.redo()),
     undo: () => dispatch(UndoActionCreators.undo()),

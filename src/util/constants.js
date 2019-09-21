@@ -1,7 +1,8 @@
-export let SIZE = 575;
-export const NUM_ROWS = 29;
-export const CELL_SIZE = Math.floor(SIZE / NUM_ROWS);
-SIZE = CELL_SIZE * NUM_ROWS;
+export let HEIGHT = window.innerHeight;
+export let WIDTH = window.innerWidth;
+export const CELL_SIZE = 20;
+export const NUM_ROWS = Math.floor(window.innerHeight / CELL_SIZE);
+export const NUM_COLS = Math.floor(window.innerWidth / CELL_SIZE);
 export const PEG_SHIFT = 0.5 * CELL_SIZE;
 export const BLURRY_LINE_SHIFT = -0.5;
 
@@ -9,7 +10,7 @@ export const GRID_TYPES = {
   // pegs: 'Peg',
   tiled: 'Tiled',
   lined: 'Lined',
-  none: 'None',
+  noGrid: 'None',
 };
 
 export const TOOL_TYPES = {

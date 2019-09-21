@@ -17,7 +17,7 @@ const Icon = styled.div`
   &:before {
     content: '';
     background-color: transparent;
-    border: ${p => `${p.borderWidth}px solid ${p.isSelected ? colors.lightestGray : 'transparent'}`};
+    border: ${p => `${p.borderWidth}px solid ${p.isSelected ? colors.lightGray : 'transparent'}`};
     border-radius: ${p => p.isRound ? (p.size - p.borderWidth) / 2 : 0}px;
     box-sizing: border-box;
     position: absolute;
@@ -64,7 +64,7 @@ Swatch.propTypes = {
 
 Swatch.defaultProps = {
   isRound: false,
-  size: 18,
+  size: 20,
 };
 
 export default Swatch;

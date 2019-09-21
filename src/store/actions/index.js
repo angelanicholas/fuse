@@ -33,12 +33,11 @@ export const clearCanvas = () => ({
   type: CLEAR_CANVAS,
 });
 
-export const fillPixel = (row, col, fill, shouldStoreInSession) => ({
+export const fillPixel = (row, col, fill) => ({
   type: FILL_PIXEL,
   row,
   col,
   fill,
-  shouldStoreInSession,
 });
 
 export const fillRectangle = (
