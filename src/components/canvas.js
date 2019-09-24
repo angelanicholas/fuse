@@ -138,9 +138,10 @@ class Canvas extends Component {
   }
 
   shouldComponentUpdate(nextProps) {
-    const { gridType, historyIndex, toolType } = this.props;
+    const { colorMode, gridType, historyIndex, toolType } = this.props;
     const redoClicked = nextProps.historyIndex < historyIndex;
     const undoClicked = nextProps.historyIndex > historyIndex;
+    const colorModeChanged = nextProps.colorMode !== colorMode;
     const gridTypeChanged = nextProps.gridType !== gridType;
     const toolTypeChanged = nextProps.toolType !== toolType;
 
@@ -148,7 +149,8 @@ class Canvas extends Component {
       this.lastToolType = toolType;
     }
 
-    if (gridTypeChanged
+    if (colorModeChanged
+      || gridTypeChanged
       || toolTypeChanged
       || undoClicked
       || redoClicked
@@ -457,9 +459,10 @@ class Canvas extends Component {
   }
 
   drawGrid() {
+    const gridColors = tileColors[this.props.colorMode.toLowerCase()];
     for (let i = 0; i < NUM_ROWS; i += 1) {
       for (let j = 0; j < NUM_COLS; j += 1) {
-        this.drawCell(i, j, 'grid', tileColors[(i + j) % 2]);
+        this.drawCell(i, j, 'grid', gridColors[(i + j) % 2]);
       }
     }
   }
@@ -558,6 +561,7 @@ Canvas.defaultProps = {
 const mapStateToProps = ({
   canvas,
   color,
+  colorMode,
   gridType,
   toolType,
 }) => {
@@ -565,6 +569,7 @@ const mapStateToProps = ({
   return {
     canvas: canvas.present,
     color: sessionColor ? JSON.parse(sessionColor) : color,
+    colorMode,
     gridType: getSessionItem('gridType') || gridType,
     historyIndex: canvas.limit - canvas.index,
     toolType: getSessionItem('toolType') || toolType,

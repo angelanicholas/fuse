@@ -1,3 +1,5 @@
+import { COLOR_MODES } from './constants';
+
 export const colors = {
   black: '#00321F',
   lightestGray: '#F7F7F7',
@@ -20,6 +22,21 @@ export const colors = {
   transparentBlue: 'rgba(209,248,255,0.67)',
   transparentWhite: 'rgba(255,255,255,0.58)',
   white: '#FFFFFF',
+};
+
+export const uiColors = {
+  dayBackground: colors.lightGray,
+  dayBackgroundContrast: colors.lightestGray,
+  dayText: colors.darkGray,
+  dayTextActive: colors.darkestGray,
+  dayTextDisabled: colors.mediumLightGray,
+  dayTextHover: colors.darkestGray,
+  nightBackground: '#323639',
+  nightBackgroundContrast: '#282C2F',
+  nightText: colors.mediumLightGray,
+  nightTextActive: '#F0F1F2',
+  nightTextDisabled: '#8A8D8E',
+  nightTextHover: '#F0F1F2',
 };
 
 export const paletteColors = [
@@ -92,7 +109,7 @@ export const paletteColors = [
   { name: 'Mist', hex: '#9CB9C7', code: 'P215' },
   { name: 'Pewter', hex: '#93A19F', code: 'P206' },
   { name: 'Charcoal', hex: '#545F5F', code: 'P207' },
-  { name: 'Black', hex: '#343234', code: 'P18' },
+  { name: 'Black', hex: '#000000', code: 'P18' },
   { name: 'White', hex: '#FFFFFF', code: 'P01' },
   // { name: 'Neon Green', hex: '#00AC4A' },
   // { name: 'Neon Yellow', hex: '#BDD200' },
@@ -135,7 +152,11 @@ export const paletteColors = [
 
 export const paletteHexStrings = paletteColors.map(color => color.hex);
 
-export const tileColors = [
-  colors.lightestGray,
-  colors.lightGray,
-];
+const modeTileColors = {};
+Object.keys(COLOR_MODES).forEach(mode => {
+  modeTileColors[mode] = [
+    `${uiColors[`${mode}Background`]}`,
+    `${uiColors[`${mode}BackgroundContrast`]}`,
+  ];
+});
+export const tileColors = modeTileColors;

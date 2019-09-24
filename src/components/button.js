@@ -1,18 +1,18 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import stylePropType from 'react-style-proptype';
 import styled from 'styled-components';
-import { colors } from '../util/colors';
+import { uiColors } from '../util/colors';
+import { COLOR_MODES } from '../util/constants';
 
 const Container = styled.button`
   align-items: center;
   appearance: none;
   -moz-appearance: none;
   -webkit-appearance: none;
-  background-color: ${props => props.color};
+  background-color: transparent;
   border: none;
   border-radius: 0.5em;
-  color: ${props => props.textColor};
+  color: ${uiColors[`${p => p.colorMode}Text${p => p.isActive ? 'Active' : ''}`]};
   cursor: pointer;
   display: flex;
   font-size: 0.8em;
@@ -27,17 +27,23 @@ const Container = styled.button`
   user-select: none;
   &:focus,
   &:hover {
-    color: ${colors.darkestGray};
+    color: ${uiColors[`${p => p.colorMode}TextHover`]};
   }
   &:disabled {
-    color: ${colors.mediumLightGray};
+    color: ${uiColors[`${p => p.colorMode}TextDisabled`]};
     pointer-events: none;
   }
 `;
 
-const Button = ({ children, label, ...rest }) => (
+const Button = ({
+  children,
+  colorMode,
+  label,
+  ...rest,
+}) => (
   <Container
     aria-label={label}
+    colorMode={colorMode.toLowerCase()}
     title={label}
     {...rest}
   >
@@ -47,17 +53,15 @@ const Button = ({ children, label, ...rest }) => (
 
 Button.propTypes = {
   children: PropTypes.node.isRequired,
-  color: PropTypes.string,
+  colorMode: PropTypes.oneOf(Object.values(COLOR_MODES)),
+  isActive: PropTypes.bool,
   label: PropTypes.string.isRequired,
   onClick: PropTypes.func.isRequired,
-  style: stylePropType,
-  textColor: PropTypes.string,
   type: PropTypes.oneOf(['button', 'submit', 'reset']),
 };
 Button.defaultProps = {
-  color: 'transparent',
-  style: {},
-  textColor: colors.darkGray,
+  colorMode: COLOR_MODES.night,
+  isActive: false,
   type: 'button',
 };
 

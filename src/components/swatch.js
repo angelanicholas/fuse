@@ -1,7 +1,8 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import styled from 'styled-components';
-import { colors } from '../util/colors';
+import { uiColors } from '../util/colors';
+import { COLOR_MODES } from '../util/constants';
 
 // styled components
 const Container = styled.div`
@@ -10,15 +11,15 @@ const Container = styled.div`
 `;
 const Icon = styled.div`
   background-color: ${p => p.hex};
-  border-radius: ${p => p.isRound ? p.size / 2 : 0}px;
+  border-radius: ${p => p.isRound ? p.size / 2 : 1}px;
   height: ${p => p.size}px;
   position: relative;
   width: ${p => p.size}px;
   &:before {
     content: '';
     background-color: transparent;
-    border: ${p => `${p.borderWidth}px solid ${p.isSelected ? colors.lightGray : 'transparent'}`};
-    border-radius: ${p => p.isRound ? (p.size - p.borderWidth) / 2 : 0}px;
+    border: ${p => `${p.borderWidth}px solid ${p.isSelected ? uiColors[`${p.colorMode}Background`] : 'transparent'}`};
+    border-radius: ${p => p.isRound ? (p.size - p.borderWidth) / 2 : 1}px;
     box-sizing: border-box;
     position: absolute;
     top: ${p => p.borderWidth}px;
@@ -30,6 +31,7 @@ const Icon = styled.div`
 
 const Swatch = ({
   color,
+  colorMode,
   isSelected,
   onClick,
   size,
@@ -41,8 +43,9 @@ const Swatch = ({
     {...rest}
   >
     <Icon
-      className="swatchIcon"
       borderWidth={2}
+      className="swatchIcon"
+      colorMode={colorMode}
       hex={color.hex}
       isSelected={isSelected}
       size={size}
@@ -56,6 +59,7 @@ Swatch.propTypes = {
     hex: PropTypes.string.isRequired,
     name: PropTypes.string.isRequired,
   }).isRequired,
+  colorMode: PropTypes.oneOf(Object.values(COLOR_MODES)).isRequired,
   isSelected: PropTypes.bool.isRequired,
   isRound: PropTypes.bool,
   size: PropTypes.number,

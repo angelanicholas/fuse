@@ -20,3 +20,8 @@ export const TOOL_TYPES = {
   eyedropper: 'Eyedropper',
   move: 'Move',
  };
+
+ export const COLOR_MODES = {
+   day: 'Day',
+   night: 'Night',
+ };

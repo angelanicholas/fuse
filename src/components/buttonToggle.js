@@ -4,6 +4,7 @@ import styled from 'styled-components';
 import ButtonComponent from './button';
 import Icon from './icon';
 import { colors } from '../util/colors';
+import { COLOR_MODES } from '../util/constants';
 
 // styled components
 const Container = styled.div`
@@ -12,13 +13,6 @@ const Container = styled.div`
   width: 100%;
 `;
 const Button = styled(ButtonComponent)`
-  background-color: ${props => props.color};
-  color: ${props => props.textColor};
-  text-decoration: ${props => (props.isActive ? 'underline' : 'none')};
-  &:focus,
-  &:hover {
-    color: ${colors.darkestGray};
-  }
   &:first-child {
     border-top-right-radius: 0;
     border-bottom-right-radius: 0;
@@ -35,47 +29,46 @@ const Button = styled(ButtonComponent)`
 `;
 
 const ButtonToggle = ({
-  color,
+  colorMode,
   options,
   onClick,
   textColor,
   value,
   ...rest
-}) => (
-  <Container {...rest}>
-    {options.map(option => (
-      <Button
-        color={color}
-        isActive={value === option.value}
-        key={`toggleButton-${option.label || option.value}`}
-        label={option.label || option.value}
-        onClick={ev => onClick(ev, option)}
-        textColor={textColor}
-        value={option.value}
-      >
-        <Icon
-          name={option.value}
-          color={value === option.value ? colors.darkestGray : 'currentColor'}
-        />
-      </Button>
-    ))}
-  </Container>
-);
+}) => {
+  return (
+    <Container {...rest}>
+      {options.map(option => {
+        console.log(value, value === option.label);
+        return (
+          <Button
+            colorMode={colorMode}
+            isActive={value === option.label}
+            key={`toggleButton-${option.label || option.value}`}
+            label={option.label || option.value}
+            onClick={ev => onClick(ev, option)}
+          >
+            <Icon
+              name={option.value}
+              color={value === option.label ? colors.darkestGray : 'currentColor'}
+            />
+          </Button>
+        );
+      })}
+    </Container>
+  );
+}
+
 
 ButtonToggle.propTypes = {
-  color: PropTypes.string,
+  colorMode: PropTypes.oneOf(Object.values(COLOR_MODES)).isRequired,
   onClick: PropTypes.func.isRequired,
   options: PropTypes.arrayOf(PropTypes.shape({
     iconName: PropTypes.string,
     label: PropTypes.string,
     value: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
   })).isRequired,
-  textColor: PropTypes.string,
   value: PropTypes.string.isRequired,
-};
-ButtonToggle.defaultProps = {
-  color: 'transparent',
-  textColor: colors.darkGray,
 };
 
 export default ButtonToggle;

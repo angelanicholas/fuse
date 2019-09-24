@@ -1,14 +1,21 @@
 import { combineReducers } from 'redux';
 import undoable, { excludeAction, groupByActionTypes } from 'redux-undo';
-import { GRID_TYPES, NUM_COLS, NUM_ROWS, TOOL_TYPES } from '../../util/constants';
 import { bucketFill } from '../../util/canvas';
 import { paletteColors } from '../../util/colors';
 import cloneDeep from 'lodash/cloneDeep';
 import cuid from 'cuid';
 import {
+  COLOR_MODES,
+  GRID_TYPES,
+  NUM_COLS,
+  NUM_ROWS,
+  TOOL_TYPES,
+} from '../../util/constants';
+import {
   BUCKET_FILL,
   CLEAR_CANVAS,
   CHANGE_COLOR,
+  CHANGE_COLOR_MODE,
   CHANGE_GRID_TYPE,
   CHANGE_TOOL_TYPE,
   FILL_PIXEL,
@@ -117,6 +124,17 @@ function toolType(state = initialToolTypeState, action) {
   }
 };
 
+const initialColorModeState = COLOR_MODES.day;
+function colorMode(state = initialColorModeState, action) {
+  switch (action.type) {
+    case CHANGE_COLOR_MODE:
+      sessionStorage.setItem('colorMode', action.colorMode);
+      return action.colorMode;
+    default:
+      return state;
+  }
+};
+
 export const batchGroupBy = {
   _group: null,
   _groupChosen: false,
@@ -151,6 +169,7 @@ export default combineReducers({
     ]),
   }),
   color,
+  colorMode,
   gridType,
   toolType,
 });

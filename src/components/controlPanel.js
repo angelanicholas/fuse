@@ -10,14 +10,24 @@ import ButtonToggle from './buttonToggle';
 import Icon from './icon';
 import Swatch from './swatch';
 import { getSessionItem } from '../util/canvas';
-import { colors, paletteColors } from '../util/colors';
-import { changeColor, changeGridType, changeToolType } from '../store/actions';
+import { colors, uiColors, paletteColors } from '../util/colors';
 import {
   CELL_SIZE,
   GRID_TYPES,
   TOOL_TYPES,
+  COLOR_MODES,
 } from '../util/constants';
+import {
+  changeColor,
+  changeColorMode,
+  changeGridType,
+  changeToolType,
+} from '../store/actions';
 
+const colorModeOptions = Object.keys(COLOR_MODES).map(type => ({
+  label: COLOR_MODES[type],
+  value: type,
+}));
 const gridTypeOptions = Object.keys(GRID_TYPES).map(type => ({
   label: GRID_TYPES[type],
   value: type,
@@ -62,7 +72,7 @@ const ColorPalette = styled.div`
   margin: 0.5em 0 0 0em;
 `;
 const Container = styled.div`
-  background-color: ${colors.lightGray};
+  background-color: ${uiColors[`${p => p.colorMode}Background`]};
   display: flex;
   flex-flow: column nowrap;
   padding: 0.25em 1.25em;
@@ -90,7 +100,9 @@ const ControlPanel = ({
   canRedo,
   canUndo,
   color,
+  colorMode,
   gridType,
+  onColorModeToggle,
   onGridTypeToggle,
   onReset,
   onSave,
@@ -118,12 +130,14 @@ const ControlPanel = ({
       )}
       <Label>Tool</Label>
       <ButtonToggle
+        colorMode={colorMode}
         onClick={onToolTypeToggle}
         options={toolTypeOptions}
         value={toolType}
       />
       <Label>Grid Style</Label>
       <ButtonToggle
+        colorMode={colorMode}
         onClick={onGridTypeToggle}
         options={gridTypeOptions}
         value={gridType}
@@ -178,6 +192,7 @@ const ControlPanel = ({
         {paletteColors.map(paletteColor => (
           <Swatch
             color={paletteColor}
+            colorMode={colorMode}
             isSelected={paletteColor.hex === color.hex}
             key={`Swatch-${paletteColor.hex}`}
             onClick={onSwatchClick}
@@ -186,6 +201,13 @@ const ControlPanel = ({
           />
         ))}
       </ColorPalette>
+      <Label>Color Mode</Label>
+      <ButtonToggle
+        colorMode={colorMode}
+        onClick={onColorModeToggle}
+        options={colorModeOptions}
+        value={colorMode}
+      />
     </Container>
   );
 }
@@ -209,6 +231,7 @@ ControlPanel.defaultProps = {
 const mapStateToProps = ({
   canvas,
   color,
+  colorMode,
   gridType,
   toolType,
 }) => {
@@ -216,6 +239,7 @@ const mapStateToProps = ({
   return {
     canRedo: canvas.future.length > 0,
     canUndo: canvas.past.length > 0,
+    colorMode,
     color: sessionColor ? JSON.parse(sessionColor) : color,
     gridType: getSessionItem('gridType') || gridType,
     toolType: getSessionItem('toolType') || toolType,
@@ -223,6 +247,7 @@ const mapStateToProps = ({
 };
 const mapDispatchToProps = dispatch => {
   return {
+    onColorModeToggle: (ev, toggleOption) => dispatch(changeColorMode(toggleOption.label)),
     onGridTypeToggle: (ev, toggleOption) => dispatch(changeGridType(toggleOption.label)),
     onToolTypeToggle: (ev, toggleOption) => dispatch(changeToolType(toggleOption.label)),
     onSwatchClick: (color) => dispatch(changeColor(color)),
