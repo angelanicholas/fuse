@@ -3,7 +3,6 @@ import PropTypes from 'prop-types';
 import styled from 'styled-components';
 import ButtonComponent from './button';
 import Icon from './icon';
-import { colors } from '../util/colors';
 import { COLOR_MODES } from '../util/constants';
 
 // styled components
@@ -38,27 +37,20 @@ const ButtonToggle = ({
 }) => {
   return (
     <Container {...rest}>
-      {options.map(option => {
-        console.log(value, value === option.label);
-        return (
-          <Button
-            colorMode={colorMode}
-            isActive={value === option.label}
-            key={`toggleButton-${option.label || option.value}`}
-            label={option.label || option.value}
-            onClick={ev => onClick(ev, option)}
-          >
-            <Icon
-              name={option.value}
-              color={value === option.label ? colors.darkestGray : 'currentColor'}
-            />
-          </Button>
-        );
-      })}
+      {options.map(option => (
+        <Button
+          colorMode={colorMode}
+          isActive={value === option.label}
+          key={`toggleButton-${option.label || option.value}`}
+          label={option.label || option.value}
+          onClick={ev => onClick(ev, option)}
+        >
+          <Icon name={option.value} />
+        </Button>
+      ))}
     </Container>
   );
 }
-
 
 ButtonToggle.propTypes = {
   colorMode: PropTypes.oneOf(Object.values(COLOR_MODES)).isRequired,

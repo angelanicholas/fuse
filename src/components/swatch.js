@@ -7,7 +7,7 @@ import { COLOR_MODES } from '../util/constants';
 // styled components
 const Container = styled.div`
   cursor: pointer;
-  padding: 2px;
+  padding: 0.2em;
 `;
 const Icon = styled.div`
   background-color: ${p => p.hex};
@@ -18,7 +18,7 @@ const Icon = styled.div`
   &:before {
     content: '';
     background-color: transparent;
-    border: ${p => `${p.borderWidth}px solid ${p.isSelected ? uiColors[`${p.colorMode}Background`] : 'transparent'}`};
+    border: ${p => `${p.borderWidth}px solid ${p.isSelected ? uiColors[`${p.colorMode.toLowerCase()}Background`] : 'transparent'}`};
     border-radius: ${p => p.isRound ? (p.size - p.borderWidth) / 2 : 1}px;
     box-sizing: border-box;
     position: absolute;

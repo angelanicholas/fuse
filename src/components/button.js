@@ -1,8 +1,8 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import styled from 'styled-components';
-import { uiColors } from '../util/colors';
 import { COLOR_MODES } from '../util/constants';
+import { uiColors } from '../util/colors';
 
 const Container = styled.button`
   align-items: center;
@@ -12,8 +12,8 @@ const Container = styled.button`
   background-color: transparent;
   border: none;
   border-radius: 0.5em;
-  color: ${uiColors[`${p => p.colorMode}Text${p => p.isActive ? 'Active' : ''}`]};
   cursor: pointer;
+  color: ${p => uiColors[`${p.colorMode.toLowerCase()}Text${p.isActive ? 'Active' : ''}`]};
   display: flex;
   font-size: 0.8em;
   font-weight: 500;
@@ -23,27 +23,24 @@ const Container = styled.button`
   overflow: hidden;
   padding: 0.75em;
   text-transform: uppercase;
-  transition: color 0.5s ease;
   user-select: none;
   &:focus,
   &:hover {
-    color: ${uiColors[`${p => p.colorMode}TextHover`]};
+    color: ${p => uiColors[`${p.colorMode.toLowerCase()}TextHover`]};
   }
   &:disabled {
-    color: ${uiColors[`${p => p.colorMode}TextDisabled`]};
-    pointer-events: none;
+    color: ${p => uiColors[`${p.colorMode.toLowerCase()}TextDisabled`]};
+    cursor: default;
   }
 `;
 
 const Button = ({
   children,
-  colorMode,
   label,
   ...rest,
 }) => (
   <Container
     aria-label={label}
-    colorMode={colorMode.toLowerCase()}
     title={label}
     {...rest}
   >
@@ -60,7 +57,7 @@ Button.propTypes = {
   type: PropTypes.oneOf(['button', 'submit', 'reset']),
 };
 Button.defaultProps = {
-  colorMode: COLOR_MODES.night,
+  colorMode: COLOR_MODES.day,
   isActive: false,
   type: 'button',
 };

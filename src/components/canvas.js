@@ -1,15 +1,25 @@
 import React, { Component, createRef } from 'react';
 import PropTypes from 'prop-types';
-import styled, { css } from 'styled-components';
+import styled from 'styled-components';
 import { connect } from 'react-redux';
 import isNull from 'lodash/isNull';
 import throttle from 'lodash/throttle';
 import { ActionCreators as UndoActionCreators } from 'redux-undo';
 import ControlPanel from './controlPanel';
 import SummaryPanel from './summaryPanel';
-import { colors, paletteColors, tileColors } from '../util/colors';
-import { clearCanvas, cursors, downloadCanvas, getSessionItem } from '../util/canvas';
 import { batchGroupBy } from '../store/reducers';
+import {
+  colors,
+  paletteColors,
+  tileColors,
+  uiColors,
+} from '../util/colors';
+import {
+  clearCanvas,
+  cursors,
+  downloadCanvas,
+  getSessionItem,
+} from '../util/canvas';
 import {
   bucketFill,
   changeColor,
@@ -39,9 +49,6 @@ const canvasProps = {
 };
 
 // styled components
-const gridLineStyles = css`
-  border-left: 0.5px solid ${colors.gray};
-`;
 const Container = styled.div`
   display: flex;
   flex-flow: row nowrap;
@@ -57,7 +64,6 @@ const EventCanvas = styled.canvas`
   z-index: 2;
 `;
 const GridCanvas = styled.canvas`
-  ${props => (props.gridType === GRID_TYPES.lined ? gridLineStyles : '')}
   pointer-events: none;
   position: absolute;
   z-index: ${props => (props.gridType === GRID_TYPES.lined ? 1 : 0)};
@@ -503,11 +509,15 @@ class Canvas extends Component {
   }
 
   render() {
-    const { gridType, showSummaryPanel, toolType } = this.props;
+    const { colorMode, gridType, showSummaryPanel, toolType } = this.props;
     const { url, url2x, x, y } = cursors[toolType.toLowerCase()];
 
     return (
-      <Container>
+      <Container
+        style={{
+          background: uiColors[`${colorMode.toLowerCase()}Background`]
+        }}
+      >
         <ControlPanel
           onReset={this.clearCanvas}
           onSave={this.save}
@@ -569,7 +579,7 @@ const mapStateToProps = ({
   return {
     canvas: canvas.present,
     color: sessionColor ? JSON.parse(sessionColor) : color,
-    colorMode,
+    colorMode: getSessionItem('colorMode') || colorMode,
     gridType: getSessionItem('gridType') || gridType,
     historyIndex: canvas.limit - canvas.index,
     toolType: getSessionItem('toolType') || toolType,

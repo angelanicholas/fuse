@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import PropTypes from 'prop-types';
 import styled from 'styled-components';
 import { connect } from 'react-redux';
@@ -72,9 +72,6 @@ const ColorPalette = styled.div`
   margin: 0.5em 0 0 0em;
 `;
 const Container = styled.div`
-  background-color: ${uiColors[`${p => p.colorMode}Background`]};
-  display: flex;
-  flex-flow: column nowrap;
   padding: 0.25em 1.25em;
   height: 100%;
   width: ${CELL_SIZE * 11}px;
@@ -115,16 +112,19 @@ const ControlPanel = ({
   toolType,
   undo,
 }) => {
-  const [hoveredColor, setHoveredColor] = useState(null);
-  const beadColor = hoveredColor || color;
   return (
-    <Container>
+    <Container
+      style={{
+        background: `${uiColors[`${colorMode.toLowerCase()}Background`]}`,
+        boxShadow: `0 0 0.1em ${uiColors[`${colorMode.toLowerCase()}BackgroundContrast`]}`,
+      }}
+    >
       {showBeadInfo && (
         <ColorInfo>
-          <Bead color={beadColor.hex} />
+          <Bead color={color.hex} />
           <ColorInfoTextWrapper>
-            <ColorInfoText>{beadColor.name}</ColorInfoText>
-            <ColorInfoText>{beadColor.code}</ColorInfoText>
+            <ColorInfoText>{color.name}</ColorInfoText>
+            <ColorInfoText>{color.code}</ColorInfoText>
           </ColorInfoTextWrapper>
         </ColorInfo>
       )}
@@ -135,22 +135,28 @@ const ControlPanel = ({
         options={toolTypeOptions}
         value={toolType}
       />
-      <Label>Grid Style</Label>
-      <ButtonToggle
-        colorMode={colorMode}
-        onClick={onGridTypeToggle}
-        options={gridTypeOptions}
-        value={gridType}
-      />
+      {showBeadInfo && (
+        <>
+          <Label>Grid Style</Label>
+          <ButtonToggle
+            colorMode={colorMode}
+            onClick={onGridTypeToggle}
+            options={gridTypeOptions}
+            value={gridType}
+          />
+        </>
+      )}
       <Label>History</Label>
       <ButtonGroup>
         <Button
+          colorMode={colorMode}
           label="New"
           onClick={onReset}
         >
           <Icon name="new" />
         </Button>
         <Button
+          colorMode={colorMode}
           disabled={!canUndo}
           label="Undo"
           onClick={undo}
@@ -158,6 +164,7 @@ const ControlPanel = ({
           <Icon name="back" />
         </Button>
         <Button
+          colorMode={colorMode}
           disabled={!canRedo}
           label="Redo"
           onClick={redo}
@@ -165,6 +172,7 @@ const ControlPanel = ({
           <Icon name="forward" />
         </Button>
         <Button
+          colorMode={colorMode}
           label="Save"
           onClick={onSave}
         >
@@ -172,6 +180,7 @@ const ControlPanel = ({
         </Button>
         {showSaveWithGrid && (
           <Button
+            colorMode={colorMode}
             label="Save With Grid"
             onClick={onSaveWithGrid}
             style={{ position: 'relative' }}
@@ -196,12 +205,10 @@ const ControlPanel = ({
             isSelected={paletteColor.hex === color.hex}
             key={`Swatch-${paletteColor.hex}`}
             onClick={onSwatchClick}
-            onMouseOver={() => setHoveredColor(paletteColor)}
-            onMouseOut={() => setHoveredColor(null)}
           />
         ))}
       </ColorPalette>
-      <Label>Color Mode</Label>
+      <Label>Night Shift</Label>
       <ButtonToggle
         colorMode={colorMode}
         onClick={onColorModeToggle}
@@ -239,7 +246,7 @@ const mapStateToProps = ({
   return {
     canRedo: canvas.future.length > 0,
     canUndo: canvas.past.length > 0,
-    colorMode,
+    colorMode: getSessionItem('colorMode') || colorMode,
     color: sessionColor ? JSON.parse(sessionColor) : color,
     gridType: getSessionItem('gridType') || gridType,
     toolType: getSessionItem('toolType') || toolType,
