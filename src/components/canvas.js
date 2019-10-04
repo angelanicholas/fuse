@@ -190,15 +190,36 @@ class Canvas extends Component {
   }
 
   handleKeyDown(ev) {
-    ev.preventDefault();
-
-    if (ev.ctrlKey|| ev.metaKey) {
-      if (ev.key === 'z') {
-        this.props.undo();
-      }
-      if (ev.key === 'y') {
-        this.props.redo();
-      }
+    const controlPressed = ev.ctrlKey|| ev.metaKey;
+    switch (ev.key) {
+      case 'b':
+        this.props.changeToolType(TOOL_TYPES.bucket);
+        break;
+      case 'e':
+        this.props.changeToolType(TOOL_TYPES.eyedropper);
+        break;
+      case 'm':
+        this.props.changeToolType(TOOL_TYPES.move);
+        break;
+      case 'p':
+        this.props.changeToolType(TOOL_TYPES.pencil);
+        break;
+      case 'r':
+        if (!controlPressed) {
+          this.props.changeToolType(TOOL_TYPES.rectangle);
+        }
+        break;
+      case 'z':
+        if (controlPressed) {
+          if (ev.shiftKey) {
+            this.props.redo();
+          } else {
+            this.props.undo();
+          }
+        }
+        break;
+      default:
+        break;
     }
   }
 
