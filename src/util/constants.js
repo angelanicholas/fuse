@@ -1,7 +1,7 @@
-export let HEIGHT = window.innerHeight;
-export let WIDTH = window.innerWidth;
 export const CELL_SIZE = 20;
-export const NUM_ROWS = Math.floor(window.innerHeight / CELL_SIZE);
+export let HEIGHT = Math.floor(window.innerHeight / CELL_SIZE) * CELL_SIZE - CELL_SIZE * 2;
+export let WIDTH = Math.floor(window.innerWidth / CELL_SIZE) * CELL_SIZE - CELL_SIZE * 11;
+export const NUM_ROWS = Math.floor(WIDTH / CELL_SIZE);
 export const NUM_COLS = Math.floor(window.innerWidth / CELL_SIZE);
 export const PEG_SHIFT = 0.5 * CELL_SIZE;
 export const BLURRY_LINE_SHIFT = -0.5;

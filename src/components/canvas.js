@@ -50,8 +50,10 @@ const canvasProps = {
 
 // styled components
 const Container = styled.div`
+  align-items: center;
   display: flex;
   flex-flow: row nowrap;
+  justify-content: center;
   height: 100%;
   width: 100%;
 `;

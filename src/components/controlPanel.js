@@ -116,7 +116,6 @@ const ControlPanel = ({
     <Container
       style={{
         background: `${uiColors[`${colorMode.toLowerCase()}Background`]}`,
-        boxShadow: `0 0 0.1em ${uiColors[`${colorMode.toLowerCase()}BackgroundContrast`]}`,
       }}
     >
       {showBeadInfo && (
