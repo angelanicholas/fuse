@@ -74,6 +74,7 @@ const GridCanvas = styled.canvas`
 class Canvas extends Component {
   constructor() {
     super();
+
     this.displayCanvas = createRef();
     this.eventCanvas = createRef();
     this.gridCanvas = createRef();
