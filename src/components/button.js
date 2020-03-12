@@ -37,7 +37,7 @@ const Container = styled.button`
 const Button = ({
   children,
   label,
-  ...rest,
+  ...rest
 }) => (
   <Container
     aria-label={label}

@@ -29,7 +29,7 @@ const Icon = ({
   name,
   size,
   style,
-  ...rest,
+  ...rest
 }) => (
   <svg
     height={size}

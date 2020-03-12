@@ -35,7 +35,7 @@ const Swatch = ({
   isSelected,
   onClick,
   size,
-  ...rest,
+  ...rest
 }) => (
   <Container
     className="swatchContainer"
