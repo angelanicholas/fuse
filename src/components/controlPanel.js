@@ -207,7 +207,7 @@ const ControlPanel = ({
           />
         ))}
       </ColorPalette>
-      <Label>Night Shift</Label>
+      <Label>Theme</Label>
       <ButtonToggle
         colorMode={colorMode}
         onClick={onColorModeToggle}
