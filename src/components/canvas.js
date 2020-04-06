@@ -380,27 +380,17 @@ class Canvas extends Component {
 
     // if dragging above initial onClick, draw in reverse
     if (height < 0) {
-      if (isPegs) {
-        startDragCol = col;
-        col = this.startDragCol;
-        height = Math.abs(height) + 1;
-      } else {
-        height -= 1;
-        startDragCol += 1;
-      }
+      startDragCol = col;
+      col = this.startDragCol;
+      height = Math.abs(height) + 1;
     } else {
       height += 1;
     }
     // if dragging left of initial click, draw in reverse
     if (width < 0) {
-      if (isPegs) {
-        startDragRow = row;
-        row = this.startDragRow;
-        width = Math.abs(width) + 1;
-      } else {
-        width -= 1;
-        startDragRow += 1;
-      }
+      startDragRow = row;
+      row = this.startDragRow;
+      width = Math.abs(width) + 1;
     } else {
       width += 1;
     }
